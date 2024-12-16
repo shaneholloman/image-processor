@@ -1,0 +1,8 @@
+# Include production dependencies
+-r requirements.txt
+
+# Development tools
+pytest          # Testing framework for writing and running unit tests
+black           # Code formatter to ensure consistent code style
+pylint          # Static code analyzer and linter for code quality
+mypy            # Static type checker for Python
