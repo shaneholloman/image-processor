@@ -20,7 +20,7 @@ def setup_logging() -> None:
     log_file = config.get("logging.file", "image_processor.log")
 
     setup_logger(
-        name="image_meta_processor",
+        name="image_processor_meta",
         log_file=log_file,
         level=getattr(__import__("logging"), log_level.upper()),
         max_bytes=config.get("logging.max_file_size_mb", 10) * 1024 * 1024,

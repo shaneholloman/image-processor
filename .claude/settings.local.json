@@ -14,7 +14,12 @@
       "Bash(brew install:*)",
       "Bash(ollama pull:*)",
       "Bash(curl:*)",
-      "Read(//Users/shaneholloman/Desktop/**)"
+      "Read(//Users/shaneholloman/Desktop/**)",
+      "Bash(tree:*)",
+      "WebFetch(domain:docs.astral.sh)",
+      "Bash(ruff check:*)",
+      "Bash(ty check:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

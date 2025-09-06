@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from image_meta_processor.db.manager import DatabaseManager
-from image_meta_processor.exceptions import (
+from image_processor_meta.db.manager import DatabaseManager
+from image_processor_meta.exceptions import (
     DatabaseConnectionError,
     DatabaseOperationError,
 )

@@ -1,6 +1,12 @@
-# Image Meta Processor
+# Image Processor
 
-A production-ready Python application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images.
+An application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images and adds them to a database.
+
+Currently, I'm not sure how far I'll take this toolset, but it's serving its purpose for now. Currently, we have two different processors:
+
+1. One for metadata - This function is fully formed.
+2. One for filenames - This function is yet to be formed.
+3. Maybe I'll add more...
 
 ## Features
 
@@ -40,7 +46,8 @@ sudo yum install inih-devel brotli-devel gettext-devel
 Note: The pyexiv2 library requires these system dependencies that cannot be installed through Python package managers.
 
 **Additional Requirements:**
-- **Python 3.10+**
+
+- **Python 3.13+**
 - **UV** (Python package manager)
 - **Ollama** with LLaVA model installed and running
 
@@ -64,7 +71,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ```bash
 git clone <repository-url>
-cd image-meta-processor
+cd image-processor-meta
 ```
 
 ### 3. Install Dependencies
@@ -81,10 +88,10 @@ uv sync --dev
 
 ```bash
 # Test Ollama connection
-uv run image-meta-processor --test-connection
+uv run image-processor-meta --test-connection
 
 # Show help
-uv run image-meta-processor --help
+uv run image-processor-meta --help
 ```
 
 ## Usage
@@ -93,32 +100,32 @@ uv run image-meta-processor --help
 
 ```bash
 # Process images in default directory (./images)
-uv run image-meta-processor
+uv run image-processor-meta
 
 # Process images in specific directory
-uv run image-meta-processor /path/to/images
+uv run image-processor-meta /path/to/images
 
 # Process with explicit directory flag
-uv run image-meta-processor -d /path/to/images
+uv run image-processor-meta -d /path/to/images
 ```
 
 ### Advanced Options
 
 ```bash
 # Skip filename sanitization
-uv run image-meta-processor --no-sanitize /path/to/images
+uv run image-processor-meta --no-sanitize /path/to/images
 
 # Disable progress bar
-uv run image-meta-processor --no-progress /path/to/images
+uv run image-processor-meta --no-progress /path/to/images
 
 # Enable verbose logging
-uv run image-meta-processor -v /path/to/images
+uv run image-processor-meta -v /path/to/images
 
 # Show database statistics
-uv run image-meta-processor --db-stats
+uv run image-processor-meta --db-stats
 
 # List available Ollama models
-uv run image-meta-processor --list-models
+uv run image-processor-meta --list-models
 ```
 
 ## Configuration
@@ -208,7 +215,7 @@ uv run ty src
 uv build
 
 # Install locally for testing
-uv tool install --from ./dist/image_meta_processor-2.0.0-py3-none-any.whl image-meta-processor
+uv tool install --from ./dist/image_processor_meta-2.0.0-py3-none-any.whl image-processor-meta
 
 # Publish to PyPI (when ready)
 uv publish
@@ -217,9 +224,9 @@ uv publish
 ## Project Structure
 
 ```text
-image-meta-processor/
+image-processor-meta/
 ├── src/
-│   └── image_meta_processor/
+│   └── image_processor_meta/
 │       ├── __init__.py
 │       ├── main.py              # CLI entry point
 │       ├── processor.py         # Main processing logic
@@ -324,7 +331,7 @@ Log files are stored in the `logs/` directory.
 
    ```bash
    # Test connection
-   uv run image-meta-processor --test-connection
+   uv run image-processor-meta --test-connection
 
    # Check Ollama status
    ollama list
@@ -350,7 +357,7 @@ Log files are stored in the `logs/` directory.
 Enable verbose logging for detailed troubleshooting:
 
 ```bash
-uv run image-meta-processor -v /path/to/images
+uv run image-processor-meta -v /path/to/images
 ```
 
 ## Contributing

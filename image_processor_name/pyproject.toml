@@ -3,9 +3,9 @@ requires = ["uv_build"]
 build-backend = "uv_build"
 
 [project]
-name = "image-processor-meta"
-version = "2.0.0"
-description = "AI-powered image metadata processor using Ollama LLaVA model"
+name = "image-processor-name"
+version = "1.3.0"
+description = "AI-powered image filename generator using Ollama LLaVA model"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -14,7 +14,7 @@ authors = [
 maintainers = [
     {name = "Shane Holloman", email = "contact@shaneholloman.com"}
 ]
-keywords = ["image", "metadata", "ai", "ollama", "llava", "xmp"]
+keywords = ["image", "filename", "ai", "ollama", "llava", "rename"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -27,12 +27,9 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "pyexiv2",
     "requests",
-    "colorama",
-    "tqdm",
-    "pyyaml",
-    "python-dotenv",
+    "Pillow",
+    "watchdog",
 ]
 
 [project.optional-dependencies]
@@ -54,8 +51,7 @@ Repository = "https://github.com/shaneholloman/image-processor-meta.git"
 Issues = "https://github.com/shaneholloman/image-processor-meta/issues"
 
 [project.scripts]
-image-processor-meta = "image_processor_meta.main:main"
-
+image-processor-name = "image_processor_name.main:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -101,7 +97,7 @@ ignore = [
 source = ["src"]
 omit = [
     "tests/*",
-    "src/image_processor_meta/__init__.py",
+    "src/image_processor_name/__init__.py",
 ]
 
 [tool.coverage.report]

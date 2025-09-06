@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from image_meta_processor.api.ollama_client import OllamaClient
-from image_meta_processor.exceptions import (
+from image_processor_meta.api.ollama_client import OllamaClient
+from image_processor_meta.exceptions import (
     OllamaConnectionError,
     OllamaResponseError,
     OllamaTimeoutError,

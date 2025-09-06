@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from image_meta_processor.exceptions import ImageProcessingError, UnsupportedImageFormat
-from image_meta_processor.processor import ImageProcessor
+from image_processor_meta.exceptions import ImageProcessingError, UnsupportedImageFormat
+from image_processor_meta.processor import ImageProcessor
 
 
 @pytest.fixture

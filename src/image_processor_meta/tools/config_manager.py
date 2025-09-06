@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv
 
-from image_meta_processor import CONFIG_DIR
+from image_processor_meta import CONFIG_DIR
 
 
 class ConfigError(Exception):
