@@ -1,4 +1,0 @@
-pyexiv2
-requests
-colorama
-tqdm

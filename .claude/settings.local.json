@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/shaneholloman/.air/rules/Python/**)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(uv list:*)",
+      "Bash(uv tree:*)",
+      "WebSearch",
+      "Bash(uv add:*)",
+      "Bash(uv tool run:*)",
+      "WebFetch(domain:pypi.org)",
+      "Bash(otool:*)",
+      "Bash(brew install:*)",
+      "Bash(ollama pull:*)",
+      "Bash(curl:*)",
+      "Read(//Users/shaneholloman/Desktop/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

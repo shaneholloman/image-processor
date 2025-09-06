@@ -1,151 +1,368 @@
 # Image Meta Processor
 
-A Python application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as metadata into the images.
+A production-ready Python application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images.
 
 ## Features
 
-- 🖼️ Supports multiple image formats (PNG, JPG, JPEG, GIF, BMP)
-- 🤖 Uses Ollama LLaVA model for AI-powered image descriptions
-- 📝 Embeds descriptions as XMP metadata directly into image files
-- 🗃️ Stores descriptions in a SQLite database for easy querying
-- 🧹 Sanitizes filenames by replacing non-alphanumeric characters
-- 🎨 Colorful console output with progress tracking
-- ♻️ Handles retries for metadata writing operations
-- 📁 Recursively processes entire directories of images
+- **AI-Powered Descriptions**: Uses Ollama LLaVA model for intelligent image analysis
+- **Metadata Integration**: Embeds descriptions as XMP metadata directly into image files
+- **Database Storage**: Stores descriptions in SQLite database for easy querying and management
+- **Batch Processing**: Recursively processes entire directories of images with progress tracking
+- **Filename Sanitization**: Automatically cleans up filenames by replacing non-alphanumeric characters
+- **Robust Error Handling**: Comprehensive error handling with retry mechanisms
+- **Production Architecture**: Modern Python structure with proper logging, configuration management, and testing
+- **Type Safety**: Full type annotations throughout the codebase
+- **Configurable**: YAML-based configuration with environment variable overrides
+
+## Supported Image Formats
+
+- PNG (.png)
+- JPEG (.jpg, .jpeg)
+- GIF (.gif)
+- BMP (.bmp)
 
 ## Prerequisites
 
-- Python 3.x
-- [Ollama](https://ollama.ai/) installed and running with the LLaVA model
-- UV package manager (recommended) or pip
+**System Dependencies:**
+Install the following system dependencies before setting up the application:
 
-## Quick Start
+```bash
+# macOS
+brew install inih brotli gettext
 
-1. Install UV (recommended):
+# Ubuntu/Debian
+sudo apt-get install libinih-dev libbrotli-dev gettext
 
-    ```bash
-    pip install uv
-    ```
+# CentOS/RHEL
+sudo yum install inih-devel brotli-devel gettext-devel
+```
 
-2. Create and activate virtual environment:
+Note: The pyexiv2 library requires these system dependencies that cannot be installed through Python package managers.
 
-    ```bash
-    uv venv
-    # Activate based on your OS:
-    # Windows: .venv/Scripts/activate
-    # Unix: source .venv/bin/activate
-    ```
+**Additional Requirements:**
+- **Python 3.10+**
+- **UV** (Python package manager)
+- **Ollama** with LLaVA model installed and running
 
-3. Install dependencies:
+### Installing Ollama
 
-    ```bash
-    uv pip install -r requirements.txt
-    ```
+1. Install Ollama from [ollama.ai](https://ollama.ai/)
+2. Pull the LLaVA model: `ollama pull llava`
+3. Ensure Ollama is running: `ollama serve`
 
-4. Run the script:
+## Installation
 
-    ```bash
-    python image_sanitize_meta_processor.py [input_directory]
-    ```
+This project uses UV for all package management and build operations.
 
-## Installation Options
+### 1. Install UV
 
-See [installation.md](installation.md) for detailed installation instructions, including:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-- Using UV vs traditional pip
-- Managing development dependencies
-- Running tests
-- Dependency locking
-- Project setup guides
+### 2. Clone and Set Up Project
+
+```bash
+git clone <repository-url>
+cd image-meta-processor
+```
+
+### 3. Install Dependencies
+
+```bash
+# Install production dependencies
+uv sync
+
+# Install with development dependencies
+uv sync --dev
+```
+
+### 4. Verify Installation
+
+```bash
+# Test Ollama connection
+uv run image-meta-processor --test-connection
+
+# Show help
+uv run image-meta-processor --help
+```
 
 ## Usage
 
-The script can be run with an optional input directory parameter:
+### Basic Usage
 
 ```bash
-python image_sanitize_meta_processor.py [path/to/images]
+# Process images in default directory (./images)
+uv run image-meta-processor
+
+# Process images in specific directory
+uv run image-meta-processor /path/to/images
+
+# Process with explicit directory flag
+uv run image-meta-processor -d /path/to/images
 ```
 
-If no directory is specified, it defaults to `./images`.
+### Advanced Options
 
-### Process Flow
+```bash
+# Skip filename sanitization
+uv run image-meta-processor --no-sanitize /path/to/images
 
-1. **Filename Sanitization**:
-   - Replaces non-alphanumeric characters with dashes
-   - Ensures clean, consistent filenames
+# Disable progress bar
+uv run image-meta-processor --no-progress /path/to/images
 
-2. **Image Processing**:
-   - Generates detailed descriptions using LLaVA model
-   - Stores descriptions in SQLite database
-   - Embeds descriptions as XMP metadata
+# Enable verbose logging
+uv run image-meta-processor -v /path/to/images
 
-3. **Progress Tracking**:
-   - Shows real-time progress with tqdm
-   - Provides colored console output
-   - Displays summary after completion
+# Show database statistics
+uv run image-meta-processor --db-stats
 
-## Database Schema
+# List available Ollama models
+uv run image-meta-processor --list-models
+```
 
-The SQLite database (`image_descriptions.db`) stores:
+## Configuration
 
-- File paths
-- Generated descriptions
-- Timestamps (automatically added)
+The application uses YAML configuration files with environment variable overrides.
 
-## Error Handling
+### Configuration File
 
-- Retries metadata writing operations up to 3 times
-- Handles file permission issues
-- Manages API timeouts
-- Logs errors with different severity levels
+Edit `config/app_config.yaml`:
+
+```yaml
+# Ollama API settings
+ollama:
+  endpoint: "http://localhost:11434/api/generate"
+  model: "llava"
+  timeout: 30
+
+# Database settings
+database:
+  path: "image_descriptions.db"
+
+# Image processing settings
+images:
+  supported_extensions:
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".bmp"
+  default_directory: "./images"
+  max_file_size_mb: 50
+
+# Logging settings
+logging:
+  level: "INFO"
+  file: "image_processor.log"
+```
+
+### Environment Variables
+
+Override any configuration with environment variables:
+
+```bash
+export OLLAMA_ENDPOINT="http://remote-ollama:11434/api/generate"
+export OLLAMA_MODEL="llava-llama3"
+export DATABASE_PATH="/custom/path/images.db"
+export LOGGING_LEVEL="DEBUG"
+```
 
 ## Development
 
-For development work:
+### Development Setup
 
-1. Install development dependencies:
+```bash
+# Install with dev dependencies
+uv sync --dev
 
-    ```bash
-    uv pip install -r requirements-dev.txt
-    ```
+# Run tests
+uv run pytest
 
-2. Run tests:
+# Run specific test categories
+uv run pytest -m unit
+uv run pytest -m integration
+uv run pytest -m requires_ollama
 
-    ```bash
-    # Unit tests
-    python -m pytest -v -m unit
+# Run with coverage
+uv run pytest --cov=src --cov-report=html
+```
 
-    # Integration tests
-    python -m pytest -v -m integration
+### Code Quality
 
-    # All tests
-    python -m pytest -v
+```bash
+# Lint code
+uv run ruff check src tests
+
+# Format code
+uv run ruff format src tests
+
+# Type checking
+uv run ty src
+```
+
+### Building and Publishing
+
+```bash
+# Build package
+uv build
+
+# Install locally for testing
+uv tool install --from ./dist/image_meta_processor-2.0.0-py3-none-any.whl image-meta-processor
+
+# Publish to PyPI (when ready)
+uv publish
+```
+
+## Project Structure
+
+```text
+image-meta-processor/
+├── src/
+│   └── image_meta_processor/
+│       ├── __init__.py
+│       ├── main.py              # CLI entry point
+│       ├── processor.py         # Main processing logic
+│       ├── exceptions.py        # Custom exceptions
+│       ├── api/
+│       │   ├── __init__.py
+│       │   └── ollama_client.py # Ollama API client
+│       ├── db/
+│       │   ├── __init__.py
+│       │   └── manager.py       # Database management
+│       └── tools/
+│           ├── __init__.py
+│           ├── log_manager.py   # Logging utilities
+│           └── config_manager.py # Configuration management
+├── config/
+│   └── app_config.yaml          # Application configuration
+├── tests/
+│   ├── conftest.py              # Test fixtures
+│   ├── unit/                    # Unit tests
+│   └── integration/             # Integration tests
+├── docs/
+├── logs/                        # Application logs
+├── pyproject.toml              # Project configuration
+└── README.md
+```
+
+## Process Flow
+
+1. **Initialization**
+   - Load configuration from YAML and environment variables
+   - Initialize database and create tables if needed
+   - Test connection to Ollama API
+
+2. **Filename Sanitization** (optional)
+   - Replace non-alphanumeric characters with dashes
+   - Remove multiple consecutive dashes
+   - Ensure clean, consistent filenames
+
+3. **Image Discovery**
+   - Recursively scan directory for supported image files
+   - Validate file sizes and formats
+   - Skip files that already have descriptions (unless forced)
+
+4. **Processing Pipeline**
+   - Encode image to base64 for Ollama API
+   - Generate detailed description using LLaVA model
+   - Store description in SQLite database
+   - Embed description as XMP metadata in image file
+   - Handle retries and error recovery
+
+5. **Results Summary**
+   - Display processing statistics
+   - Report any failed files
+   - Log detailed information for debugging
+
+## Error Handling
+
+The application includes comprehensive error handling:
+
+- **Connection Errors**: Graceful handling when Ollama is unavailable
+- **File Errors**: Proper handling of permission issues and corrupted files
+- **Database Errors**: Transaction rollback and connection recovery
+- **Metadata Errors**: Retry mechanisms for metadata writing operations
+- **Validation Errors**: Clear error messages for invalid inputs
+
+## Database Schema
+
+SQLite database (`descriptions.db`) stores:
+
+```sql
+CREATE TABLE images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file_path TEXT UNIQUE NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## Logging
+
+Logs are written to both console (with colors) and file:
+
+- **Console**: Colored output for different log levels
+- **File**: Plain text logs with rotation (10MB max, 5 backups)
+- **Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+Log files are stored in the `logs/` directory.
+
+## Performance Considerations
+
+- **Batch Processing**: Processes multiple images efficiently
+- **Connection Pooling**: Reuses database connections
+- **Memory Management**: Streams large files without loading entirely into memory
+- **Progress Tracking**: Real-time progress indication for long-running operations
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Ollama Connection Failed**
+
+   ```bash
+   # Test connection
+   uv run image-meta-processor --test-connection
+
+   # Check Ollama status
+   ollama list
+   ollama serve
    ```
 
-## Known Issues & Future Plans
+2. **Permission Denied**
+   - Ensure write permissions for image directories
+   - Check database file permissions
+   - Verify log directory is writable
 
-### Test Suite Improvements
+3. **Unsupported Image Format**
+   - Check `config/app_config.yaml` for supported extensions
+   - Ensure images are not corrupted
 
-- Expand test coverage to include:
-  - SQLite database operations
-  - Existing image metadata reading
-- Integrate Ollama with GitHub workflow runners
-- Resolve linting issues in test_integration.py
+4. **Database Locked**
+   - Check if another instance is running
+   - Verify database file permissions
+   - Consider using database backup/restore
 
-### General Improvements
+### Debug Mode
 
-- Optimize image encoding handling (bytes vs base64)
-- Enhance SQLite database operations and management
-- Improve CI/CD pipeline with automated testing
+Enable verbose logging for detailed troubleshooting:
+
+```bash
+uv run image-meta-processor -v /path/to/images
+```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
+3. Make your changes following the coding standards
+4. Add tests for new functionality
+5. Run the full test suite: `uv run pytest`
+6. Run code quality checks: `uv run ruff check src tests && uv run ty src`
+7. Submit a pull request
 
 ## License
 
-[MIT License](LICENSE)
+MIT License - see LICENSE file for details.

@@ -1,0 +1,40 @@
+# Image Meta Processor Configuration
+
+# Ollama API settings
+ollama:
+  endpoint: "http://localhost:11434/api/chat"
+  model: "llava"
+  timeout: 30
+
+# Database settings
+database:
+  path: "data/descriptions.db"
+  backup_count: 3
+
+# Image processing settings
+images:
+  supported_extensions:
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".bmp"
+  default_directory: "./images"
+  max_file_size_mb: 50
+
+# Metadata settings
+metadata:
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# Logging settings
+logging:
+  level: "INFO"
+  file: "image_processor.log"
+  max_file_size_mb: 10
+  backup_count: 5
+
+# Processing settings
+processing:
+  batch_size: 10
+  progress_bar: true
