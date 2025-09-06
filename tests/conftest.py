@@ -62,6 +62,6 @@ def sample_image_data():
 def sample_jpeg_file(temp_dir, sample_image_data):
     """Create a sample JPEG file for testing."""
     jpeg_path = temp_dir / "test_image.jpg"
-    with open(jpeg_path, "wb") as f:
+    with jpeg_path.open("wb") as f:
         f.write(sample_image_data)
     return jpeg_path

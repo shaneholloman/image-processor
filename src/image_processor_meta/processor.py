@@ -6,9 +6,8 @@ import re
 import time
 from pathlib import Path
 
-from tqdm import tqdm
-
 import pyexiv2
+from tqdm import tqdm
 
 from .api.ollama_client import OllamaClient
 from .db.manager import DatabaseManager

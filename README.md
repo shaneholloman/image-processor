@@ -2,10 +2,10 @@
 
 An application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images and adds them to a database.
 
-Currently, I'm not sure how far I'll take this toolset, but it's serving my purpose for now. Currently, I've two different processors:
+This toolset contains two AI-powered image processing tools:
 
-1. One for metadata
-2. One for filenames
+1. **image-processor-meta** - AI-powered metadata generator that embeds descriptions into images
+2. **image-processor-name** - AI-powered image filename generator using descriptive names
 3. Maybe I'll add more...
 
 ## Features
@@ -91,16 +91,18 @@ uv sync --dev
 ### 4. Verify Installation
 
 ```bash
-# Test Ollama connection
+# Test Ollama connection (either tool)
 uv run image-processor-meta --test-connection
+uv run image-processor-name --test-connection
 
-# Show help
+# Show help for both tools
 uv run image-processor-meta --help
+uv run image-processor-name --help
 ```
 
 ## Usage
 
-### Basic Usage
+### Image Metadata Processing
 
 ```bash
 # Process images in default directory (./images)
@@ -111,45 +113,57 @@ uv run image-processor-meta /path/to/images
 
 # Process with explicit directory flag
 uv run image-processor-meta -d /path/to/images
-```
 
-### Advanced Options
-
-```bash
 # Skip filename sanitization
 uv run image-processor-meta --no-sanitize /path/to/images
 
-# Disable progress bar
-uv run image-processor-meta --no-progress /path/to/images
-
-# Enable verbose logging
-uv run image-processor-meta -v /path/to/images
-
 # Show database statistics
 uv run image-processor-meta --db-stats
+```
 
-# List available Ollama models
+### Image Filename Generation
+
+```bash
+# Rename images in a directory using AI-generated descriptions
+uv run image-processor-name rename /path/to/images
+
+# Rename single image file
+uv run image-processor-name rename image.jpg
+
+# Preview what would be renamed without making changes
+uv run image-processor-name --dry-run rename /path/to/images
+```
+
+### Common Options
+
+```bash
+# Enable verbose logging (either tool)
+uv run image-processor-meta -v /path/to/images
+uv run image-processor-name -v rename /path/to/images
+
+# List available Ollama models (either tool)
 uv run image-processor-meta --list-models
+uv run image-processor-name --list-models
 ```
 
 ## Configuration
 
 The application uses YAML configuration files with environment variable overrides.
 
-### Configuration File
+### Configuration Files
 
-Edit `config/app_config.yaml`:
+**Meta Tool Configuration** - Edit `config/meta_config.yaml`:
 
 ```yaml
 # Ollama API settings
 ollama:
-  endpoint: "http://localhost:11434/api/generate"
+  endpoint: "http://localhost:11434/api/chat"
   model: "llava"
   timeout: 30
 
 # Database settings
 database:
-  path: "image_descriptions.db"
+  path: "data/descriptions.db"
 
 # Image processing settings
 images:
@@ -165,7 +179,41 @@ images:
 # Logging settings
 logging:
   level: "INFO"
-  file: "image_processor.log"
+  file: "logs/image_processor.log"
+```
+
+**Name Tool Configuration** - Edit `config/name_config.yaml`:
+
+```yaml
+# Ollama API Configuration
+ollama:
+  endpoint: "http://localhost:11434/api/generate"
+  model: "llava-llama3:latest"
+  timeout: 30
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# Image Processing Configuration
+images:
+  supported_extensions: [".png", ".jpg", ".jpeg", ".gif", ".bmp"]
+  max_file_size_mb: 50
+  verify_before_processing: true
+
+# Filename Generation Configuration
+filename:
+  prompt: "Describe this image in 4-5 words"
+  pattern_cleanup: true
+  max_length: 100
+  remove_punctuation: true
+  replace_spaces_with: "-"
+  case_conversion: "lower"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "image_renamer.log"
+  max_file_size_mb: 10
+  backup_count: 5
 ```
 
 ### Environment Variables
@@ -228,32 +276,42 @@ uv publish
 ## Project Structure
 
 ```text
-image-processor-meta/
+image-processor/
 ├── src/
-│   └── image_processor_meta/
+│   ├── image_processor_meta/     # Metadata processing tool
+│   │   ├── __init__.py
+│   │   ├── main.py              # CLI entry point
+│   │   ├── processor.py         # Main processing logic
+│   │   ├── exceptions.py        # Custom exceptions
+│   │   ├── api/
+│   │   │   └── ollama_client.py # Ollama API client
+│   │   ├── db/
+│   │   │   └── manager.py       # Database management
+│   │   └── tools/
+│   │       ├── log_manager.py   # Logging utilities
+│   │       └── config_manager.py # Configuration management
+│   └── image_processor_name/     # Filename generation tool
 │       ├── __init__.py
 │       ├── main.py              # CLI entry point
-│       ├── processor.py         # Main processing logic
 │       ├── exceptions.py        # Custom exceptions
 │       ├── api/
-│       │   ├── __init__.py
 │       │   └── ollama_client.py # Ollama API client
-│       ├── db/
-│       │   ├── __init__.py
-│       │   └── manager.py       # Database management
+│       ├── core/
+│       │   └── renamer.py       # Main renaming logic
 │       └── tools/
-│           ├── __init__.py
-│           ├── log_manager.py   # Logging utilities
-│           └── config_manager.py # Configuration management
+│           ├── config_manager.py # Configuration management
+│           ├── file_operations.py # File handling utilities
+│           └── log_manager.py   # Logging utilities
 ├── config/
-│   └── app_config.yaml          # Application configuration
+│   ├── meta_config.yaml         # Meta tool configuration
+│   └── name_config.yaml         # Name tool configuration
 ├── tests/
 │   ├── conftest.py              # Test fixtures
 │   ├── unit/                    # Unit tests
 │   └── integration/             # Integration tests
 ├── docs/
 ├── logs/                        # Application logs
-├── pyproject.toml              # Project configuration
+├── pyproject.toml              # Unified project configuration
 └── README.md
 ```
 

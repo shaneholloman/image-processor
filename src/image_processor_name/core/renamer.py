@@ -213,7 +213,7 @@ class ImageRenamer:
             # Use original simple logic - process each file exactly once
             pattern = "**/*" if recursive else "*"
             all_files = list(directory.glob(pattern))
-            
+
             # Filter for image files
             image_files = [f for f in all_files if f.is_file() and self.file_ops.is_supported_image(f)]
 

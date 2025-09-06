@@ -163,8 +163,8 @@ class DatabaseManager:
             with self.connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT file_path, description, created_at, updated_at 
-                    FROM images 
+                    SELECT file_path, description, created_at, updated_at
+                    FROM images
                     ORDER BY updated_at DESC
                 """)
 

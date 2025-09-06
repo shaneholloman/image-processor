@@ -62,7 +62,7 @@ class OllamaClient:
             ImageCorrupted: If image file cannot be read
         """
         try:
-            with open(image_path, "rb") as image_file:
+            with Path(image_path).open("rb") as image_file:
                 image_data = image_file.read()
                 encoded_string = base64.b64encode(image_data).decode("utf-8")
                 logger.debug(
@@ -144,7 +144,7 @@ class OllamaClient:
                 raise OllamaResponseError(
                     f"Missing 'message' field in Ollama response: {response_data}"
                 )
-            
+
             if "content" not in response_data["message"]:
                 raise OllamaResponseError(
                     f"Missing 'content' field in message: {response_data}"

@@ -29,6 +29,8 @@ requires-python = ">=3.13"
 dependencies = [
     "pyexiv2",
     "requests",
+    "Pillow",
+    "watchdog",
     "colorama",
     "tqdm",
     "pyyaml",
@@ -55,6 +57,7 @@ Issues = "https://github.com/shaneholloman/image-processor-meta/issues"
 
 [project.scripts]
 image-processor-meta = "image_processor_meta.main:main"
+image-processor-name = "image_processor_name.main:main"
 
 
 [tool.pytest.ini_options]
@@ -102,6 +105,7 @@ source = ["src"]
 omit = [
     "tests/*",
     "src/image_processor_meta/__init__.py",
+    "src/image_processor_name/__init__.py",
 ]
 
 [tool.coverage.report]

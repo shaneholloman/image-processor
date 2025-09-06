@@ -21,7 +21,7 @@ class ConfigError(Exception):
 class ConfigManager:
     """Manages application configuration from YAML files and environment variables."""
 
-    def __init__(self, config_file: str = "rename_config.yaml") -> None:
+    def __init__(self, config_file: str = "name_config.yaml") -> None:
         """
         Initialize configuration manager.
 

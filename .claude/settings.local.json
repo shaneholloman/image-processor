@@ -20,7 +20,9 @@
       "Bash(ruff check:*)",
       "Bash(ty check:*)",
       "Bash(find:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

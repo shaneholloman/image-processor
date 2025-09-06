@@ -99,8 +99,6 @@ def test_ollama_connection(ollama_client: OllamaClient) -> bool:
     Returns:
         True if connection successful
     """
-    logger = get_logger(__name__)
-
     print("Testing Ollama connection...")
 
     if ollama_client.test_connection():

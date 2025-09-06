@@ -21,7 +21,7 @@ class ConfigError(Exception):
 class ConfigManager:
     """Manages application configuration from YAML files and environment variables."""
 
-    def __init__(self, config_file: str = "app_config.yaml") -> None:
+    def __init__(self, config_file: str = "meta_config.yaml") -> None:
         """
         Initialize configuration manager.
 
@@ -45,7 +45,7 @@ class ConfigManager:
             raise ConfigError(f"Configuration file not found: {self.config_file}")
 
         try:
-            with open(self.config_file, encoding="utf-8") as f:
+            with self.config_file.open(encoding="utf-8") as f:
                 self._config = yaml.safe_load(f) or {}
         except yaml.YAMLError as e:
             raise ConfigError(f"Invalid YAML in config file: {e}") from e
