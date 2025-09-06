@@ -1,5 +1,7 @@
 # Image Processor
 
+> Note to self, consider using this model. <https://ollama.com/library/gemma3:12b>
+
 An application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images and adds them to a database.
 
 This toolset contains two AI-powered image processing tools:
