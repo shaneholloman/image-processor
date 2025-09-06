@@ -43,13 +43,11 @@ def create_argument_parser() -> argparse.ArgumentParser:
 Examples:
   %(prog)s rename /path/to/images         # Rename all images in directory
   %(prog)s rename image.jpg              # Rename single image file
-  %(prog)s watch /path/to/images         # Watch directory for new images
   %(prog)s --test-connection             # Test Ollama connection
   %(prog)s --dry-run rename /path/images # Preview what would be renamed
 
 Modes:
   rename    Process images once and exit
-  watch     Continuously watch for new images (Ctrl+C to stop)
         """,
     )
 
