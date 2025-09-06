@@ -4,8 +4,8 @@ An application that processes images to generate detailed descriptions using the
 
 Currently, I'm not sure how far I'll take this toolset, but it's serving its purpose for now. Currently, we have two different processors:
 
-1. One for metadata - This function is fully formed.
-2. One for filenames - This function is yet to be formed.
+1. One for metadata
+2. One for filenames
 3. Maybe I'll add more...
 
 ## Features
@@ -61,17 +61,21 @@ Note: The pyexiv2 library requires these system dependencies that cannot be inst
 
 This project uses UV for all package management and build operations.
 
-### 1. Install UV
+### 1. Install UV & TY
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
+```bash
+uv tool install ty@latest
+```
+
 ### 2. Clone and Set Up Project
 
 ```bash
-git clone <repository-url>
-cd image-processor-meta
+gh repo clone shaneholloman/image-processor
+cd image-processor
 ```
 
 ### 3. Install Dependencies
