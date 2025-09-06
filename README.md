@@ -257,7 +257,7 @@ uv run ruff check src tests
 uv run ruff format src tests
 
 # Type checking
-uv run ty src
+uv run ty check src
 ```
 
 ### Building and Publishing
@@ -428,7 +428,7 @@ uv run image-processor-meta -v /path/to/images
 2. Create a feature branch
 3. Make your changes following the coding standards
 4. Add tests for new functionality
-5. Run the full test suite: `uv run pytest`
+5. Run the full test suite:
 6. Run code quality checks: `uv run ruff check src tests && uv run ty src`
 7. Submit a pull request
 

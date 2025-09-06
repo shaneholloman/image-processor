@@ -24,7 +24,9 @@
       "Bash(cp:*)",
       "Bash(mv:*)",
       "Bash(echo $VIRTUAL_ENV)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(sed:*)",
+      "Read(//Users/shaneholloman/.claude/**)"
     ],
     "deny": [],
     "ask": []
