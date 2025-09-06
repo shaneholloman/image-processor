@@ -84,7 +84,7 @@ cd image-processor
 # Install production dependencies
 uv sync
 
-# Install with development dependencies
+# Install with development and test dependencies
 uv sync --all-extras
 ```
 
