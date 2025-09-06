@@ -2,7 +2,7 @@
 
 An application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images and adds them to a database.
 
-Currently, I'm not sure how far I'll take this toolset, but it's serving its purpose for now. Currently, we have two different processors:
+Currently, I'm not sure how far I'll take this toolset, but it's serving my purpose for now. Currently, I've two different processors:
 
 1. One for metadata
 2. One for filenames
@@ -48,7 +48,7 @@ Note: The pyexiv2 library requires these system dependencies that cannot be inst
 **Additional Requirements:**
 
 - **Python 3.13+**
-- **UV** (Python package manager)
+- **`uv`** (Python package manager)
 - **Ollama** with LLaVA model installed and running
 
 ### Installing Ollama
@@ -59,9 +59,9 @@ Note: The pyexiv2 library requires these system dependencies that cannot be inst
 
 ## Installation
 
-This project uses UV for all package management and build operations.
+This project uses `uv` for all package management and build operations.
 
-### 1. Install UV & TY
+### 1. Install `uv` & `ty`
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
