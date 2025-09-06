@@ -85,7 +85,7 @@ cd image-processor
 uv sync
 
 # Install with development dependencies
-uv sync --dev
+uv sync --all-extras
 ```
 
 ### 4. Verify Installation
