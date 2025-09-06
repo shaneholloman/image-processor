@@ -22,7 +22,9 @@
       "Bash(find:*)",
       "Bash(python:*)",
       "Bash(cp:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(echo $VIRTUAL_ENV)",
+      "Bash(env)"
     ],
     "deny": [],
     "ask": []
