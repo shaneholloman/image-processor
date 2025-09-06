@@ -42,3 +42,5 @@ Make sure the repo rename on GitHub that I made is reflected locally and is not 
   - [ ] Investigate compatibility issues with apps like Darktable
   - [ ] Optimize metadata field usage for LLM output
   - [ ] Ensure proper handling of multi-paragraph descriptions
+
+> Consider TypeScript versions for each toolset.
