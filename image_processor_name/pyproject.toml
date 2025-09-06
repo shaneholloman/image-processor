@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "image-processor-name"
-version = "1.3.0"
+version = "2.0.0"
 description = "AI-powered image filename generator using Ollama LLaVA model"
 readme = "README.md"
 license = {text = "MIT"}
@@ -30,6 +30,10 @@ dependencies = [
     "requests",
     "Pillow",
     "watchdog",
+    "colorama",
+    "tqdm",
+    "pyyaml",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]

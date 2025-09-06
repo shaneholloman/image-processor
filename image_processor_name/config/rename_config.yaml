@@ -1,0 +1,51 @@
+# Image Processor Name Tool Configuration
+
+# Ollama API Configuration
+ollama:
+  endpoint: "http://localhost:11434/api/generate"
+  model: "llava-llama3:latest"
+  timeout: 30
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# Image Processing Configuration
+images:
+  supported_extensions: [".png", ".jpg", ".jpeg", ".gif", ".bmp"]
+  max_file_size_mb: 50
+  verify_before_processing: true
+
+# Filename Generation Configuration
+filename:
+  prompt: "Describe this image in 4-5 words"
+  pattern_cleanup: true
+  max_length: 100
+  remove_punctuation: true
+  replace_spaces_with: "-"
+  case_conversion: "lower"  # "lower", "upper", "title", or "none"
+
+# File Operations Configuration
+file_operations:
+  safe_move_retries: 3
+  move_delay_seconds: 0.5
+  backup_originals: false
+  confirm_overwrites: true
+
+# Watching Configuration
+watcher:
+  recursive: false
+  debounce_seconds: 1.0
+  file_settle_time: 1.0
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "image_renamer.log"
+  max_file_size_mb: 10
+  backup_count: 5
+  console_colors: true
+
+# Processing Configuration
+processing:
+  progress_bar: true
+  batch_size: 10
+  concurrent_operations: false

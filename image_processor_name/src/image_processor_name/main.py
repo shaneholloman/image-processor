@@ -1,240 +1,289 @@
 """
-Automatic image renaming utility that uses AI to generate descriptive filenames.
-Watches directories for new images and renames them based on their content.
-
-Version: 1.3
+Main entry point for image processor name tool CLI.
 """
 
 import argparse
-import base64
-import gc
-import logging
-import re
-import shutil
-import time
+import sys
 from pathlib import Path
 
-import requests
-from PIL import Image
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+from .api.ollama_client import OllamaClient
+from .core.renamer import ImageRenamer
+from .exceptions import (
+    ConfigurationError,
+    ImageProcessorNameError,
+    OllamaConnectionError,
 )
-logger = logging.getLogger(__name__)
-
-class ImageHandler(FileSystemEventHandler):
-    """Handles filesystem events for image files, specifically new file creation."""
-
-    def on_created(self, event) -> None:
-        """Process newly created image files for renaming.
-
-        Args:
-            event: The filesystem event containing the path of the new file
-        """
-        if event.is_directory:
-            return
-        if event.src_path.lower().endswith((".png", ".jpg", ".jpeg")):
-            # Add a small delay to ensure file is fully written
-            time.sleep(1)
-            rename_images_in_dir(event.src_path)
+from .tools.config_manager import config
+from .tools.file_operations import FileOperations
+from .tools.log_manager import get_logger, setup_logger
 
 
-def verify_image(image_path: str) -> bool:
-    """Verify image file is valid and close all handles.
+def setup_logging() -> None:
+    """Set up application logging."""
+    log_level = config.get("logging.level", "INFO")
+    log_file = config.get("logging.file", "image_renamer.log")
+    use_colors = config.get("logging.console_colors", True)
+
+    setup_logger(
+        name="image_processor_name",
+        log_file=log_file,
+        level=getattr(__import__("logging"), log_level.upper()),
+        max_bytes=config.get("logging.max_file_size_mb", 10) * 1024 * 1024,
+        backup_count=config.get("logging.backup_count", 5),
+        use_colors=use_colors,
+    )
+
+
+def create_argument_parser() -> argparse.ArgumentParser:
+    """Create and configure argument parser."""
+    parser = argparse.ArgumentParser(
+        description="AI-powered image filename generator using Ollama LLaVA model",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s rename /path/to/images         # Rename all images in directory
+  %(prog)s rename image.jpg              # Rename single image file
+  %(prog)s watch /path/to/images         # Watch directory for new images
+  %(prog)s --test-connection             # Test Ollama connection
+  %(prog)s --dry-run rename /path/images # Preview what would be renamed
+
+Modes:
+  rename    Process images once and exit
+  watch     Continuously watch for new images (Ctrl+C to stop)
+        """,
+    )
+
+    # Global options
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be renamed without actually renaming files",
+    )
+
+    parser.add_argument(
+        "--test-connection",
+        action="store_true",
+        help="Test Ollama connection and exit",
+    )
+
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="List available Ollama models and exit",
+    )
+
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Enable verbose logging"
+    )
+
+    parser.add_argument(
+        "--quiet", "-q",
+        action="store_true",
+        help="Suppress progress bars and non-essential output"
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="Image Processor Name Tool v2.0.0"
+    )
+
+    # Subcommands
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Rename command
+    rename_parser = subparsers.add_parser(
+        "rename", help="Rename images using AI-generated descriptions"
+    )
+    rename_parser.add_argument(
+        "path", help="Directory or file to process"
+    )
+    rename_parser.add_argument(
+        "-r", "--recursive",
+        action="store_true",
+        help="Process subdirectories recursively"
+    )
+    rename_parser.add_argument(
+        "--prompt",
+        help="Custom prompt for AI description generation"
+    )
+
+
+    return parser
+
+
+def test_ollama_connection(ollama_client: OllamaClient) -> bool:
+    """
+    Test connection to Ollama API.
 
     Args:
-        image_path: Path to the image file
+        ollama_client: Ollama client instance
 
     Returns:
-        bool: True if image is valid, False otherwise
+        True if connection successful
     """
-    try:
-        img = Image.open(image_path)
-        img.verify()
-        img.close()
-        # Force garbage collection to ensure handles are released
-        gc.collect()
+    print("Testing Ollama connection...")
+
+    if ollama_client.test_connection():
+        print(f"✓ Successfully connected to Ollama at {ollama_client.endpoint}")
+        print(f"✓ Using model: {ollama_client.model}")
         return True
-    except Exception as e:
-        logger.error("Error verifying image %s: %s", image_path, str(e))
-        return False
 
-
-def encode_image(image_path: str) -> str | None:
-    """Encode an image file to base64 string.
-
-    Args:
-        image_path: Path to the image file
-
-    Returns:
-        Base64 encoded string of the image or None if encoding fails
-    """
-    try:
-        image_path_obj = Path(image_path)
-        with image_path_obj.open("rb") as image_file:
-            encoded = base64.b64encode(image_file.read()).decode("utf-8")
-        # Force garbage collection to ensure handles are released
-        gc.collect()
-        return encoded
-    except Exception as e:
-        logger.error("Error encoding image %s: %s", image_path, str(e))
-        return None
-
-
-def safe_file_move(src: str, dst: str, max_retries: int = 3) -> bool:
-    """Safely move a file using copy and delete strategy.
-
-    Args:
-        src: Source file path
-        dst: Destination file path
-        max_retries: Maximum number of retry attempts
-
-    Returns:
-        bool: True if move successful, False otherwise
-    """
-    src_path = Path(src)
-    dst_path = Path(dst)
-
-    # Ensure the destination directory exists
-    dst_path.parent.mkdir(parents=True, exist_ok=True)
-
-    for attempt in range(max_retries):
-        try:
-            # Copy first
-            shutil.copy2(src_path, dst_path)
-            # Force garbage collection
-            gc.collect()
-            time.sleep(0.5)  # Small delay to ensure copy is complete
-
-            # Then try to remove original
-            try:
-                src_path.unlink()
-                return True
-            except OSError as e:
-                logger.warning("Could not remove original file: %s", str(e))
-                # If we can't remove original, remove the copy and try again
-                dst_path.unlink()
-
-        except OSError as e:
-            logger.warning("Move attempt %d failed: %s", attempt + 1, str(e))
-            if attempt < max_retries - 1:
-                time.sleep(1)
-                continue
-            return False
-
+    print(f"✗ Failed to connect to Ollama at {ollama_client.endpoint}")
+    print("\nTroubleshooting:")
+    print("1. Ensure Ollama is installed and running")
+    print("2. Check that the LLaVA model is available: ollama pull llava-llama3:latest")
+    print("3. Verify the endpoint URL in configuration")
     return False
 
 
-def rename_file(path: str) -> str | None:
-    """Generate a new name for an image using AI description.
+def handle_rename_command(args: argparse.Namespace) -> int:
+    """
+    Handle the rename command.
 
     Args:
-        path: Path to the image file
+        args: Parsed command line arguments
 
     Returns:
-        New filename or None if unsuccessful
+        Exit code
     """
-    path_obj = Path(path)
-    if not path_obj.is_file() or not path_obj.exists():
-        return None
-
-    # Verify image first
-    if not verify_image(str(path_obj)):
-        return None
+    logger = get_logger(__name__)
 
     try:
-        encoded_image = encode_image(str(path_obj))
-        if not encoded_image:
-            return None
+        target_path = Path(args.path).resolve()
 
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "llava-llama3:latest",
-                "prompt": "Describe this image in 4-5 words",
-                "stream": False,
-                "images": [encoded_image],
-            },
-            timeout=30
-        ).json()
+        if not target_path.exists():
+            print(f"Error: Path does not exist: {target_path}")
+            return 1
 
-        if "response" in response:
-            description = response["response"].strip().lower()
-            # Remove trailing punctuation first
-            description = description.rstrip('.,!?;:')
-            # Replace spaces and special characters with dashes
-            new_name = "".join(c if c.isalnum() else "-" for c in description)
-            # Clean up multiple consecutive dashes and trailing dashes
-            new_name = re.sub(r'-+', '-', new_name).strip('-')
-            # Add original extension
-            return f"{new_name}{path_obj.suffix}"
+        # Initialize components
+        ollama_client = OllamaClient()
+        file_ops = FileOperations()
+        renamer = ImageRenamer(ollama_client, file_ops)
+
+        # Test connection first
+        if not args.dry_run and not renamer.test_connection():
+            print("Error: Cannot connect to Ollama. Use --test-connection for details.")
+            return 1
+
+        # Process single file or directory
+        if target_path.is_file():
+            if not file_ops.is_supported_image(target_path):
+                print(f"Error: Unsupported image format: {target_path}")
+                return 1
+
+            success = renamer.rename_single_image(target_path, args.dry_run)
+            return 0 if success else 1
+
+        if target_path.is_dir():
+            results = renamer.rename_directory(
+                target_path,
+                recursive=args.recursive,
+                dry_run=args.dry_run,
+                show_progress=not args.quiet,
+            )
+
+            # Print summary
+            action = "analyzed" if args.dry_run else "renamed"
+            print("\nProcessing Summary:")
+            print(f"  Total files found: {results['total_files']}")
+            print(f"  Successfully {action}: {results['processed']}")
+            print(f"  Failed: {results['failed']}")
+            print(f"  Skipped: {results['skipped']}")
+            print(f"  Processing time: {results['processing_time']:.1f} seconds")
+
+            if results["failed"] > 0:
+                print(f"\nWarning: {results['failed']} files failed processing. Check logs for details.")
+                return 1
+
+            success_msg = "Analysis complete!" if args.dry_run else "All images processed successfully!"
+            print(f"\n✓ {success_msg}")
+            return 0
+
+        print(f"Error: Path is neither a file nor directory: {target_path}")
+        return 1
 
     except Exception as e:
-        logger.error("Error processing %s: %s", path_obj, str(e))
-        return None
+        logger.error(f"Rename command failed: {e}")
+        print(f"Error: {e}")
+        return 1
 
-    return None
 
 
-def rename_images_in_dir(path: str) -> None:
-    """Rename image files in a directory or a single file.
 
-    Args:
-        path: Path to directory or file to process
+def main() -> int:
     """
-    path_obj = Path(path)
+    Main entry point for the application.
 
-    if path_obj.is_file():
-        new_name = rename_file(str(path_obj))
-        if new_name:
-            new_path = path_obj.parent / new_name
-            if not safe_file_move(str(path_obj), str(new_path)):
-                logger.error("Failed to rename %s after multiple attempts", path_obj)
-    else:
-        for filepath in path_obj.glob("*"):
-            if filepath.suffix.lower() in (".png", ".jpg", ".jpeg"):
-                new_name = rename_file(str(filepath))
-                if new_name:
-                    new_path = filepath.parent / new_name
-                    if not safe_file_move(str(filepath), str(new_path)):
-                        logger.error("Failed to rename %s after multiple attempts", filepath)
+    Returns:
+        Exit code (0 for success, non-zero for error)
+    """
+    try:
+        # Parse arguments first to handle early exits
+        parser = create_argument_parser()
+        args = parser.parse_args()
 
+        # Set up logging
+        setup_logging()
+        logger = get_logger(__name__)
 
-def main() -> None:
-    """Main entry point for the script."""
-    parser = argparse.ArgumentParser(
-        description="Rename images in a directory or a single file."
-    )
-    parser.add_argument("path", help="The directory or file to rename images in.")
-    args = parser.parse_args()
+        # Set verbose logging if requested
+        if args.verbose:
+            logger.setLevel(__import__("logging").DEBUG)
+            logger.debug("Verbose logging enabled")
 
-    path = Path(args.path).resolve()
-    if not path.exists():
-        logger.error("Specified path does not exist: %s", path)
-        return
+        # Handle global options that don't need full setup
+        if args.test_connection:
+            ollama_client = OllamaClient()
+            return 0 if test_ollama_connection(ollama_client) else 1
 
-    rename_images_in_dir(str(path))
+        if args.list_models:
+            try:
+                ollama_client = OllamaClient()
+                models = ollama_client.list_models()
+                print("Available Ollama models:")
+                for model in models.get("models", []):
+                    print(f"  - {model.get('name', 'Unknown')}")
+                return 0
+            except Exception as e:
+                logger.error(f"Failed to list models: {e}")
+                print(f"Error listing models: {e}")
+                return 1
 
-    # Only start the observer if the path is a directory
-    if path.is_dir():
-        event_handler = ImageHandler()
-        observer = Observer()
-        observer.schedule(event_handler, path=str(path), recursive=False)
-        observer.start()
+        # Handle commands
+        if args.command == "rename":
+            return handle_rename_command(args)
+        # No command specified, show help
+        parser.print_help()
+        return 1
 
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            observer.stop()
-        observer.join()
-    else:
-        logger.info("Processed single file. Exiting.")
+    except ConfigurationError as e:
+        print(f"Configuration error: {e}")
+        print("Check your configuration file and try again.")
+        return 1
+
+    except OllamaConnectionError as e:
+        print(f"Ollama connection error: {e}")
+        print("Run with --test-connection to diagnose connection issues.")
+        return 1
+
+    except ImageProcessorNameError as e:
+        print(f"Error: {e}")
+        return 1
+
+    except KeyboardInterrupt:
+        print("\nOperation interrupted by user.")
+        return 130
+
+    except Exception as e:
+        logger = get_logger(__name__)
+        logger.exception("Unexpected error occurred")
+        print(f"Unexpected error: {e}")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
+

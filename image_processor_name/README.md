@@ -1,161 +1,264 @@
-# Image Name Processor
+# Image Processor Name Tool
 
-A Python application that automatically generates descriptive filenames for images using AI. It can watch directories for new images and rename them based on their content using the Ollama LLaVA model.
+AI-powered image filename generator using Ollama LLaVA model. This tool automatically generates descriptive filenames for images based on their content.
 
 ## Features
 
-- AI-powered descriptive filename generation using LLaVA model
-- Directory watching for automatic processing of new images
-- Supports multiple image formats (PNG, JPG, JPEG)
-- Safe file operations with retry mechanisms
-- Image verification before processing
-- Clean filename generation (alphanumeric with hyphens)
-- Detailed logging for monitoring and debugging
-- Memory management with garbage collection
+- **AI-Powered Renaming**: Uses Ollama LLaVA model to generate descriptive filenames
+- **Multiple Operation Modes**: Batch rename or single file processing
+- **Robust Architecture**: Modular design with proper error handling and logging
+- **Configurable**: YAML-based configuration with environment variable overrides
+- **Safe Operations**: Backup/restore mechanisms and retry logic for file operations
+- **Rich CLI**: Comprehensive command-line interface with dry-run capabilities
+- **Progress Tracking**: Real-time progress bars and detailed logging
+- **Type Safety**: Full type hints throughout the codebase
 
 ## Prerequisites
 
-- **UV** (Python package manager)
-- **Ollama** with LLaVA model installed and running
+### Required Software
 
-### Installing Prerequisites
+1. **UV** (Python package manager)
 
-1. Install UV:
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
 
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
-
-2. Install Ollama from [ollama.ai](https://ollama.ai/)
-3. Pull the LLaVA model: `ollama pull llava:13b`
-4. Ensure Ollama is running: `ollama serve`
+2. **Ollama** with LLaVA model
+   - Install from [ollama.ai](https://ollama.ai/)
+   - Pull the model: `ollama pull llava-llama3:latest`
+   - Start the service: `ollama serve`
 
 ## Installation
 
 ```bash
-# Install dependencies
+# Install all dependencies
 uv sync
 ```
 
 ## Quick Start
 
 ```bash
-# Watch a directory
-uv run src/image_processor_name/main.py /path/to/directory
+# Test Ollama connection
+uv run image-processor-name --test-connection
 
-# Process a single file
-uv run src/image_processor_name/main.py /path/to/image.jpg
+# Preview what would be renamed (dry run)
+uv run image-processor-name --dry-run rename /path/to/images
+
+# Rename all images in a directory
+uv run image-processor-name rename /path/to/images
+
 ```
 
-## Usage Examples
+## Usage
 
-### Watch Directory Mode
-
-Run the script to monitor a directory for new images:
+### Command Structure
 
 ```bash
-# Watch Desktop for new images
-uv run src/image_processor_name/main.py ~/Desktop
-
-# Watch Downloads folder
-uv run src/image_processor_name/main.py ~/Downloads
+uv run image-processor-name [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS] PATH
 ```
 
-The script will:
+### Global Options
 
-- Monitor the specified directory for new image files
-- Automatically process and rename new images as they appear
-- Continue running until interrupted (Ctrl+C)
+- `--dry-run` - Preview operations without making changes
+- `--test-connection` - Test Ollama API connectivity
+- `--list-models` - Show available Ollama models
+- `--verbose, -v` - Enable verbose logging
+- `--quiet, -q` - Suppress progress bars
+- `--help` - Show help information
 
-### Single File Mode
+### Commands
 
-Process a specific image file:
+#### Rename Command
+
+Process images once and exit:
 
 ```bash
-uv run src/image_processor_name/main.py path/to/image.jpg
+# Basic directory rename
+uv run image-processor-name rename /path/to/images
+
+# Recursive processing
+uv run image-processor-name rename -r /path/to/images
+
+# Single file
+uv run image-processor-name rename image.jpg
+
+# Custom AI prompt
+uv run image-processor-name rename --prompt "Describe in 3 words" /path/to/images
+
+# Dry run to preview
+uv run image-processor-name --dry-run rename /path/to/images
 ```
 
-The script will:
+## Configuration
 
-- Verify the image file
-- Generate a descriptive name using AI
-- Safely rename the file
-- Exit after processing
+Configuration is managed via `config/rename_config.yaml`. Key settings:
 
-## Technical Details
+```yaml
+# Ollama API Configuration
+ollama:
+  endpoint: "http://localhost:11434/api/generate"
+  model: "llava-llama3:latest"
+  timeout: 30
 
-### Safety Features
+# Filename Generation
+filename:
+  prompt: "Describe this image in 4-5 words"
+  case_conversion: "lower"  # lower, upper, title, none
+  max_length: 100
 
-1. **File Verification**:
-   - Validates image files before processing
-   - Ensures files are completely written before renaming
-   - Uses PIL for image integrity checks
+# File Operations
+file_operations:
+  safe_move_retries: 3
+  backup_originals: false
+  confirm_overwrites: true
 
-2. **Safe File Operations**:
-   - Copy-then-delete strategy for safe moves
-   - Multiple retry attempts for file operations
-   - Garbage collection to prevent file handle issues
-   - Delay mechanisms to ensure file system stability
+# Logging
+logging:
+  level: "INFO"
+  file: "image_renamer.log"
+  console_colors: true
+```
 
-3. **Error Handling**:
-   - Comprehensive logging of all operations
-   - Graceful failure handling
-   - Detailed error messages for debugging
+### Environment Variables
 
-### AI Integration
+Override any config setting using environment variables:
 
-- Uses Ollama's LLaVA model for image analysis
-- Generates concise 4-5 word descriptions
-- Converts descriptions to clean filenames:
-  - Lowercase conversion
-  - Special character removal
-  - Space replacement with hyphens
+```bash
+# Override Ollama model
+export OLLAMA_MODEL="llava:7b"
 
-### Memory Management
+# Override log level
+export LOGGING_LEVEL="DEBUG"
 
-- Active garbage collection after file operations
-- Handle cleanup after image processing
-- Resource management for long-running operations
+# Override filename prompt
+export FILENAME_PROMPT="Describe this image briefly"
+```
+
+## Example Workflows
+
+### Batch Processing Photos
+
+```bash
+# Preview what will happen
+uv run image-processor-name --dry-run rename ~/Pictures/vacation
+
+# Process with progress tracking
+uv run image-processor-name rename ~/Pictures/vacation
+
+# Recursive processing with verbose logging
+uv run image-processor-name -v rename -r ~/Pictures
+```
+
+### Development and Testing
+
+```bash
+# Test connection
+uv run image-processor-name --test-connection
+
+# Check available models
+uv run image-processor-name --list-models
+
+# Dry run with verbose logging
+uv run image-processor-name --dry-run -v rename test_images/
+
+# Custom prompt testing
+uv run image-processor-name --dry-run rename --prompt "One word only" test.jpg
+```
 
 ## Example Transformations
 
-Original filenames → AI-generated names:
+The AI analyzes image content and generates descriptive filenames:
 
-- `IMG_20231220_193001.jpg` → `a-rocket-launch.jpg`
-- `Screenshot_2023.png` → `girl-eating-donut-smiling.png`
-- `DSC_0123.jpg` → `man-smoking-cigarette-and-wearing-suit.jpg`
+| Original                  | Generated                             |
+| ------------------------- | ------------------------------------- |
+| `IMG_20231220_193001.jpg` | `rocket-launching-into-space.jpg`     |
+| `Screenshot_2023.png`     | `woman-eating-chocolate-donut.png`    |
+| `DSC_0123.jpg`            | `man-in-suit-smoking-cigarette.jpg`   |
+| `photo_1.jpeg`            | `golden-retriever-playing-fetch.jpeg` |
+
+## Architecture
+
+```text
+src/image_processor_name/
+├── api/
+│   └── ollama_client.py      # Ollama API integration
+├── core/
+│   └── renamer.py            # Main renaming logic
+├── tools/
+│   ├── config_manager.py     # Configuration handling
+│   ├── log_manager.py        # Logging setup
+│   └── file_operations.py    # Safe file operations
+├── exceptions.py             # Custom exceptions
+├── main.py                   # CLI interface
+└── __main__.py               # Module entry point
+```
 
 ## Troubleshooting
 
-1. **File Access Issues**:
-   - Ensure proper permissions on directories
-   - Check for file locks from other applications
-   - Verify sufficient disk space
+### Connection Issues
 
-2. **AI Service Issues**:
-   - Confirm Ollama is running (`http://localhost:11434`)
-   - Verify LLaVA model is installed
-   - Check network connectivity
+```bash
+# Test Ollama connectivity
+uv run image-processor-name --test-connection
 
-3. **Memory Issues**:
-   - Monitor system resources during operation
-   - Consider processing fewer files simultaneously
-   - Ensure adequate system memory
+# Check if Ollama is running
+curl http://localhost:11434/api/tags
 
-## Contributing
+# Verify model is available
+ollama list
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
+### File Operation Issues
+
+- **Permission denied**: Check file/directory permissions
+- **File in use**: Ensure files aren't open in other applications
+- **Disk space**: Verify sufficient storage space
+- **Path issues**: Use absolute paths when possible
+
+### Performance Issues
+
+- **Slow processing**: Consider using faster Ollama model (7B vs 13B)
+- **High memory usage**: Enable debug logging to monitor resource usage
+- **Network timeouts**: Adjust `ollama.timeout` in configuration
+
+### Configuration Issues
+
+- **Config not found**: Ensure `config/rename_config.yaml` exists
+- **Invalid YAML**: Check configuration file syntax
+- **Environment variables**: Verify environment variable names (use `_` for nested keys)
+
+## Development
+
+### Code Quality
+
+```bash
+# Run linting
+uv run ruff check src/
+
+# Fix linting issues
+uv run ruff check --fix src/
+
+# Type checking
+uv run ty check src/
+```
+
+### Testing
+
+```bash
+# Test basic functionality
+uv run image-processor-name --test-connection
+
+# Dry run tests
+uv run image-processor-name --dry-run rename test_images/
+
+```
 
 ## License
 
-[MIT License](LICENSE)
+MIT License - see LICENSE file for details.
 
 ## Acknowledgments
 
-- Built with [Ollama](https://ollama.ai/) and the LLaVA model
-- Uses [Watchdog](https://pythonhosted.org/watchdog/) for file system monitoring
-- Inspired by the need for automated, intelligent file organization
+- **Ollama** - Local LLM inference engine
+- **LLaVA** - Vision-language model for image understanding
+- **UV** - Modern Python packaging and dependency management

@@ -19,7 +19,8 @@
       "WebFetch(domain:docs.astral.sh)",
       "Bash(ruff check:*)",
       "Bash(ty check:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
