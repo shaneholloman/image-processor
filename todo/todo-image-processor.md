@@ -4,6 +4,8 @@
 
 [next](../plans/consolidate-tools-plan.md)
 
+Make sure the repo rename on GitHub that I made is reflected locally and is not causing any sync issues.
+
 ### Documentation
 
 - [ ] Write a README.md file with setup and usage instructions
