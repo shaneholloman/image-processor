@@ -2,12 +2,7 @@
 
 ## To Do
 
-Most immediately, we need to move the image_processor_name tool directory into the source directory of this project and then correctly wire in the configs for each of the tools. Make sure there is a single source of management using a single pyproject.toml file for everything. Also, we need to make sure our two different configs for each of our different tools are using proper pattern-based names that match the tool. Right now, it looks like one of them is using app_config.yaml which is misleading. It should actually match the name of the tool, which it doesn't.
-
-- [meta](../config/app_config.yaml)
-- [rename](../image_processor_name/config/rename_config.yaml) That's better, at least it's got "rename" in the file name.
-
-Both of these can be renamed to something more consistent that perfectly matches each of the different tools.
+[next](../plans/consolidate-tools-plan.md)
 
 ### Documentation
 
