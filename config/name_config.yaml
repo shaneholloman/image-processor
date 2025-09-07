@@ -30,7 +30,7 @@ file_operations:
   backup_originals: false
   confirm_overwrites: true
 
-# Watching Configuration
+# Watching Configuration (Example)
 watcher:
   recursive: false
   debounce_seconds: 1.0
