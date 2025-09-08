@@ -2,18 +2,15 @@
 
 ## To Do
 
-Make sure the repo rename on GitHub that I made is reflected locally and is not causing any sync issues.
-
 ### Documentation
 
-- [ ] Write a README.md file with setup and usage instructions
+- [x] Write a README.md file with setup and usage instructions
 - [ ] Document any configuration options and environment variables
 - [ ] Add information about Ollama API interaction
 
-### Optimization and Error Handling
+### Error Handling
 
 - [ ] Implement retry mechanism for failed API calls (if needed)
-- [ ] Optimize for performance (e.g., batch processing, if applicable)
 
 ## In Progress
 
