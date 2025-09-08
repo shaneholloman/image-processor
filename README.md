@@ -11,8 +11,8 @@ An application that processes images to generate detailed descriptions using the
 
 This toolset contains two AI-powered image processing tools:
 
-1. **image-processor-meta** - AI-powered metadata generator that embeds descriptions into images
-2. **image-processor-name** - AI-powered image filename generator using descriptive names
+1. **image-processor-meta** - metadata generator that embeds descriptions into images
+2. **image-processor-name** - image filename generator using descriptive names
 3. Maybe I'll add more...
 
 ## Features
@@ -236,24 +236,6 @@ export LOGGING_LEVEL="DEBUG"
 
 ## Development
 
-### Development Setup
-
-```bash
-# Install with dev dependencies
-uv sync --dev
-
-# Run tests
-uv run pytest
-
-# Run specific test categories
-uv run pytest -m unit
-uv run pytest -m integration
-uv run pytest -m requires_ollama
-
-# Run with coverage
-uv run pytest --cov=src --cov-report=html
-```
-
 ### Code Quality
 
 ```bash
@@ -282,7 +264,7 @@ uv publish
 
 ## Project Structure
 
-```text
+```tree
 image-processor/
 ├── src/
 │   ├── image_processor_meta/     # Metadata processing tool
@@ -398,7 +380,7 @@ Log files are stored in the `logs/` directory.
 
 1. **Ollama Connection Failed**
 
-   ```bash
+   ```sh
    # Test connection
    uv run image-processor-meta --test-connection
 
