@@ -61,7 +61,7 @@ Note: The pyexiv2 library requires these system dependencies that cannot be inst
 ### Installing Ollama
 
 1. Install Ollama from [ollama.ai](https://ollama.ai/)
-2. Pull the LLaVA model: `ollama pull llava`
+2. Pull the LLaVA model: `ollama pull llava` and `ollama pull llava-llama3:latest`
 3. Ensure Ollama is running: `ollama serve`
 
 ## Installation
