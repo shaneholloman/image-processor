@@ -39,7 +39,7 @@ watcher:
 # Logging Configuration
 logging:
   level: "INFO"
-  file: "image_renamer.log"
+  file: "image_processor_name.log"
   max_file_size_mb: 10
   backup_count: 5
   console_colors: true

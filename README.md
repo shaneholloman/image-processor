@@ -294,10 +294,6 @@ image-processor/
 ├── config/
 │   ├── meta_config.yaml         # Meta tool configuration
 │   └── name_config.yaml         # Name tool configuration
-├── tests/
-│   ├── conftest.py              # Test fixtures
-│   ├── unit/                    # Unit tests
-│   └── integration/             # Integration tests
 ├── docs/
 ├── logs/                        # Application logs
 ├── pyproject.toml              # Unified project configuration

@@ -30,7 +30,7 @@ metadata:
 # Logging settings
 logging:
   level: "INFO"
-  file: "image_processor.log"
+  file: "image_processor_meta.log"
   max_file_size_mb: 10
   backup_count: 5
 
