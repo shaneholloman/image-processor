@@ -35,13 +35,13 @@ If you need to regenerate these test images, run:
 
 ```bash
 # Basic test images
-uv run python3 tests/create_test_images.py
+uv run tests/create_test_images.py
 
 # Include nested directory structure for recursive testing
-uv run python3 tests/create_test_images.py --with-nested
+uv run tests/create_test_images.py --with-nested
 
 # Clean existing images first
-uv run python3 tests/create_test_images.py --clean
+uv run tests/create_test_images.py --clean
 ```
 
 The script will automatically create all necessary test images with proper formats, sizes, and edge cases.

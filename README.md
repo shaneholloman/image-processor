@@ -253,19 +253,19 @@ uv run ty check src
 
 ```bash
 # Run all tests
-  uv run pytest
+uv run pytest
 
-  # Run only unit tests
-  uv run pytest tests/unit/ -m unit
+# Run only unit tests
+uv run pytest tests/unit/ -m unit
 
-  # Run only integration tests (no Ollama required)
-  uv run pytest tests/integration/ -m integration
+# Run only integration tests (no Ollama required)
+uv run pytest tests/integration/ -m integration
 
-  # Run Ollama integration tests (requires running Ollama)
-  uv run pytest -m requires_ollama
+# Run Ollama integration tests (requires running Ollama)
+uv run pytest -m requires_ollama
 
-  # Run with coverage
-  uv run pytest --cov=src --cov-report=html
+# Run with coverage
+uv run pytest --cov=src --cov-report=html
 ```
 
 ### Building and Publishing
@@ -322,31 +322,31 @@ image-processor/
 ## Process Flow
 
 1. **Initialization**
-   - Load configuration from YAML and environment variables
-   - Initialize database and create tables if needed
-   - Test connection to Ollama API
+    - Load configuration from YAML and environment variables
+    - Initialize database and create tables if needed
+    - Test connection to Ollama API
 
 2. **Filename Sanitization** (optional)
-   - Replace non-alphanumeric characters with dashes
-   - Remove multiple consecutive dashes
-   - Ensure clean, consistent filenames
+    - Replace non-alphanumeric characters with dashes
+    - Remove multiple consecutive dashes
+    - Ensure clean, consistent filenames
 
 3. **Image Discovery**
-   - Recursively scan directory for supported image files
-   - Validate file sizes and formats
-   - Skip files that already have descriptions (unless forced)
+    - Recursively scan directory for supported image files
+    - Validate file sizes and formats
+    - Skip files that already have descriptions (unless forced)
 
 4. **Processing Pipeline**
-   - Encode image to base64 for Ollama API
-   - Generate detailed description using LLaVA model
-   - Store description in SQLite database
-   - Embed description as XMP metadata in image file
-   - Handle retries and error recovery
+    - Encode image to base64 for Ollama API
+    - Generate detailed description using LLaVA model
+    - Store description in SQLite database
+    - Embed description as XMP metadata in image file
+    - Handle retries and error recovery
 
 5. **Results Summary**
-   - Display processing statistics
-   - Report any failed files
-   - Log detailed information for debugging
+    - Display processing statistics
+    - Report any failed files
+    - Log detailed information for debugging
 
 ## Error Handling
 
@@ -395,28 +395,28 @@ Log files are stored in the `logs/` directory.
 
 1. **Ollama Connection Failed**
 
-   ```sh
-   # Test connection
-   uv run image-processor-meta --test-connection
-
-   # Check Ollama status
-   ollama list
-   ollama serve
-   ```
+    ```sh
+    # Test connection
+    uv run image-processor-meta --test-connection
+ 
+    # Check Ollama status
+    ollama list
+    ollama serve
+    ```
 
 2. **Permission Denied**
-   - Ensure write permissions for image directories
-   - Check database file permissions
-   - Verify log directory is writable
+    - Ensure write permissions for image directories
+    - Check database file permissions
+    - Verify log directory is writable
 
 3. **Unsupported Image Format**
-   - Check `config/app_config.yaml` for supported extensions
-   - Ensure images are not corrupted
+    - Check `config/app_config.yaml` for supported extensions
+    - Ensure images are not corrupted
 
 4. **Database Locked**
-   - Check if another instance is running
-   - Verify database file permissions
-   - Consider using database backup/restore
+    - Check if another instance is running
+    - Verify database file permissions
+    - Consider using database backup/restore
 
 ### Debug Mode
 
