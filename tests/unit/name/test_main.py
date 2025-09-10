@@ -12,10 +12,10 @@ from src.image_processor_name.exceptions import (
     OllamaConnectionError,
 )
 from src.image_processor_name.main import (
+    check_ollama_connection,
     create_argument_parser,
     handle_rename_command,
     main,
-    test_ollama_connection,
 )
 
 
@@ -93,7 +93,7 @@ def test_test_ollama_connection_success(mock_ollama_success: Mock, capsys):
     mock_ollama_success.endpoint = "http://localhost:11434/api/generate"
     mock_ollama_success.model = "llava-llama3:latest"
 
-    result = test_ollama_connection(mock_ollama_success)
+    result = check_ollama_connection(mock_ollama_success)
 
     assert result is True
     captured = capsys.readouterr()
@@ -105,7 +105,7 @@ def test_test_ollama_connection_failure(mock_ollama_error: Mock, capsys):
     """Test failed connection test."""
     mock_ollama_error.endpoint = "http://localhost:11434/api/generate"
 
-    result = test_ollama_connection(mock_ollama_error)
+    result = check_ollama_connection(mock_ollama_error)
 
     assert result is False
     captured = capsys.readouterr()
