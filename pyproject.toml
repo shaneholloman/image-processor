@@ -3,7 +3,7 @@ requires = ["uv_build"]
 build-backend = "uv_build"
 
 [project]
-name = "image-processor-meta"
+name = "image-processor"
 version = "2.1.0"
 description = "AI image processor with metadata embedding and file renaming using Local Vision Models via Ollama"
 readme = "README.md"
@@ -54,6 +54,10 @@ test = [
 Homepage = "https://github.com/shaneholloman/image-processor"
 Repository = "https://github.com/shaneholloman/image-processor.git"
 Issues = "https://github.com/shaneholloman/image-processor/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["image_processor_meta*", "image_processor_name*"]
 
 [project.scripts]
 image-processor-meta = "image_processor_meta.main:main"

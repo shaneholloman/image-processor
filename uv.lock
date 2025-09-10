@@ -114,7 +114,7 @@ wheels = [
 ]
 
 [[package]]
-name = "image-processor-meta"
+name = "image-processor"
 version = "2.1.0"
 source = { editable = "." }
 dependencies = [
