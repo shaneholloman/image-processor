@@ -33,7 +33,9 @@
       "Bash(time uv run pytest:*)",
       "Bash(git checkout:*)",
       "Bash(ruff format:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
