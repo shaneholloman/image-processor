@@ -157,7 +157,9 @@ def handle_rename_command(args: argparse.Namespace) -> int:
 
         # Test connection first
         if not args.dry_run and not renamer.test_connection():
-            print("Error: Cannot connect to Ollama. Use --check-connection for details.")
+            print(
+                "Error: Cannot connect to Ollama. Use --check-connection for details."
+            )
             return 1
 
         # Process single file or directory

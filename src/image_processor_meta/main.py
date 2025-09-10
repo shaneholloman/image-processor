@@ -65,7 +65,9 @@ Examples:
     )
 
     parser.add_argument(
-        "--check-connection", action="store_true", help="Check Ollama connection and exit"
+        "--check-connection",
+        action="store_true",
+        help="Check Ollama connection and exit",
     )
 
     parser.add_argument(
@@ -187,7 +189,9 @@ def main() -> int:
         # Test Ollama connection before processing
         if not ollama_client.test_connection():
             logger.error("Cannot connect to Ollama. Please ensure it's running.")
-            print("\nOllama connection failed. Run with --check-connection for details.")
+            print(
+                "\nOllama connection failed. Run with --check-connection for details."
+            )
             return 1
 
         # Initialize processor and run
