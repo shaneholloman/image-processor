@@ -41,6 +41,8 @@ This toolset contains two AI-powered image processing tools:
 - GIF (.gif)
 - BMP (.bmp)
 
+> Consider supporting some well-known raw formats.
+
 ## Prerequisites
 
 **System Dependencies:**
