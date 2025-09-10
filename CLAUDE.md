@@ -57,9 +57,9 @@ uv run pytest --cov=src --cov-report=html
 ### Application Usage
 
 ```bash
-# Test Ollama connections
-uv run image-processor-meta --test-connection
-uv run image-processor-name --test-connection
+# Check Ollama connections
+uv run image-processor-meta --check-connection
+uv run image-processor-name --check-connection
 
 # Run meta tool (embeds descriptions as metadata)
 uv run image-processor-meta /path/to/images

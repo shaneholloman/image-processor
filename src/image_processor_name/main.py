@@ -43,7 +43,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
 Examples:
   %(prog)s rename /path/to/images         # Rename all images in directory
   %(prog)s rename image.jpg              # Rename single image file
-  %(prog)s --test-connection             # Test Ollama connection
+  %(prog)s --check-connection            # Check Ollama connection
   %(prog)s --dry-run rename /path/images # Preview what would be renamed
 
 Modes:
@@ -59,7 +59,7 @@ Modes:
     )
 
     parser.add_argument(
-        "--test-connection",
+        "--check-connection",
         action="store_true",
         help="Test Ollama connection and exit",
     )
@@ -157,7 +157,7 @@ def handle_rename_command(args: argparse.Namespace) -> int:
 
         # Test connection first
         if not args.dry_run and not renamer.test_connection():
-            print("Error: Cannot connect to Ollama. Use --test-connection for details.")
+            print("Error: Cannot connect to Ollama. Use --check-connection for details.")
             return 1
 
         # Process single file or directory
@@ -231,7 +231,7 @@ def main() -> int:
             logger.debug("Verbose logging enabled")
 
         # Handle global options that don't need full setup
-        if args.test_connection:
+        if args.check_connection:
             ollama_client = OllamaClient()
             return 0 if check_ollama_connection(ollama_client) else 1
 
@@ -262,7 +262,7 @@ def main() -> int:
 
     except OllamaConnectionError as e:
         print(f"Ollama connection error: {e}")
-        print("Run with --test-connection to diagnose connection issues.")
+        print("Run with --check-connection to diagnose connection issues.")
         return 1
 
     except ImageProcessorNameError as e:

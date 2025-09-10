@@ -64,12 +64,12 @@ def test_parse_rename_command():
     assert args.prompt == "Custom prompt"
 
 
-def test_parse_test_connection():
-    """Test parsing of test connection command."""
+def test_parse_check_connection():
+    """Test parsing of check connection command."""
     parser = create_argument_parser()
 
-    args = parser.parse_args(["--test-connection"])
-    assert args.test_connection is True
+    args = parser.parse_args(["--check-connection"])
+    assert args.check_connection is True
 
 
 def test_parse_list_models():
@@ -282,7 +282,7 @@ def test_handle_rename_command_dry_run(sample_image_small: Path):
 def test_main_test_connection_success(mock_setup_logging):
     """Test main function with successful connection test."""
     with (
-        patch("sys.argv", ["image-processor-name", "--test-connection"]),
+        patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client = Mock()
@@ -298,7 +298,7 @@ def test_main_test_connection_success(mock_setup_logging):
 def test_main_test_connection_failure(mock_setup_logging):
     """Test main function with failed connection test."""
     with (
-        patch("sys.argv", ["image-processor-name", "--test-connection"]),
+        patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client = Mock()
@@ -372,7 +372,7 @@ def test_main_no_command(mock_setup_logging):
 def test_main_configuration_error(mock_setup_logging):
     """Test main function with configuration error."""
     with (
-        patch("sys.argv", ["image-processor-name", "--test-connection"]),
+        patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client_class.side_effect = ConfigurationError("Invalid config")
@@ -386,7 +386,7 @@ def test_main_configuration_error(mock_setup_logging):
 def test_main_ollama_connection_error(mock_setup_logging):
     """Test main function with Ollama connection error."""
     with (
-        patch("sys.argv", ["image-processor-name", "--test-connection"]),
+        patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client_class.side_effect = OllamaConnectionError("Connection failed")
@@ -400,7 +400,7 @@ def test_main_ollama_connection_error(mock_setup_logging):
 def test_main_keyboard_interrupt(mock_setup_logging):
     """Test main function with keyboard interrupt."""
     with (
-        patch("sys.argv", ["image-processor-name", "--test-connection"]),
+        patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client_class.side_effect = KeyboardInterrupt()
@@ -414,7 +414,7 @@ def test_main_keyboard_interrupt(mock_setup_logging):
 def test_main_verbose_logging(mock_setup_logging):
     """Test main function with verbose logging enabled."""
     with (
-        patch("sys.argv", ["image-processor-name", "-v", "--test-connection"]),
+        patch("sys.argv", ["image-processor-name", "-v", "--check-connection"]),
         patch("src.image_processor_name.main.get_logger") as mock_get_logger,
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
@@ -436,7 +436,7 @@ def test_main_verbose_logging(mock_setup_logging):
 def test_main_unexpected_error(mock_setup_logging):
     """Test main function with unexpected error."""
     with (
-        patch("sys.argv", ["image-processor-name", "--test-connection"]),
+        patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client_class.side_effect = RuntimeError("Unexpected error")

@@ -39,7 +39,7 @@ Examples:
   %(prog)s /path/to/images          # Process images in specific directory
   %(prog)s -d /path/to/images       # Process with explicit directory flag
   %(prog)s --no-sanitize           # Skip filename sanitization
-  %(prog)s --test-connection       # Test Ollama connection only
+  %(prog)s --check-connection      # Check Ollama connection only
         """,
     )
 
@@ -65,7 +65,7 @@ Examples:
     )
 
     parser.add_argument(
-        "--test-connection", action="store_true", help="Test Ollama connection and exit"
+        "--check-connection", action="store_true", help="Check Ollama connection and exit"
     )
 
     parser.add_argument(
@@ -155,7 +155,7 @@ def main() -> int:
         db_manager = DatabaseManager()
 
         # Handle special commands
-        if args.test_connection:
+        if args.check_connection:
             return 0 if check_ollama_connection(ollama_client) else 1
 
         if args.list_models:
@@ -187,7 +187,7 @@ def main() -> int:
         # Test Ollama connection before processing
         if not ollama_client.test_connection():
             logger.error("Cannot connect to Ollama. Please ensure it's running.")
-            print("\nOllama connection failed. Run with --test-connection for details.")
+            print("\nOllama connection failed. Run with --check-connection for details.")
             return 1
 
         # Initialize processor and run
@@ -219,7 +219,7 @@ def main() -> int:
     except OllamaConnectionError as e:
         logger.error(f"Ollama connection error: {e}")
         print(f"Error: {e}")
-        print("Run with --test-connection to diagnose connection issues.")
+        print("Run with --check-connection to diagnose connection issues.")
         return 1
 
     except ImageProcessorError as e:

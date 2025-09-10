@@ -98,9 +98,9 @@ uv sync --all-extras
 ### 4. Verify Installation
 
 ```bash
-# Test Ollama connection (either tool)
-uv run image-processor-meta --test-connection
-uv run image-processor-name --test-connection
+# Check Ollama connection (either tool)
+uv run image-processor-meta --check-connection
+uv run image-processor-name --check-connection
 
 # Show help for both tools
 uv run image-processor-meta --help
@@ -397,7 +397,7 @@ Log files are stored in the `logs/` directory.
 
     ```sh
     # Test connection
-    uv run image-processor-meta --test-connection
+    uv run image-processor-meta --check-connection
  
     # Check Ollama status
     ollama list
