@@ -4,8 +4,8 @@ build-backend = "uv_build"
 
 [project]
 name = "image-processor-meta"
-version = "2.0.0"
-description = "AI-powered image processor using Ollama LLaVA model"
+version = "2.1.0"
+description = "AI image processor with metadata embedding and file renaming using Local Vision Models via Ollama"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -51,9 +51,9 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/shaneholloman/image-processor-meta"
-Repository = "https://github.com/shaneholloman/image-processor-meta.git"
-Issues = "https://github.com/shaneholloman/image-processor-meta/issues"
+Homepage = "https://github.com/shaneholloman/image-processor"
+Repository = "https://github.com/shaneholloman/image-processor.git"
+Issues = "https://github.com/shaneholloman/image-processor/issues"
 
 [project.scripts]
 image-processor-meta = "image_processor_meta.main:main"
