@@ -89,7 +89,7 @@ Examples:
     return parser
 
 
-def test_ollama_connection(ollama_client: OllamaClient) -> bool:
+def check_ollama_connection(ollama_client: OllamaClient) -> bool:
     """
     Test connection to Ollama API.
 
@@ -156,7 +156,7 @@ def main() -> int:
 
         # Handle special commands
         if args.test_connection:
-            return 0 if test_ollama_connection(ollama_client) else 1
+            return 0 if check_ollama_connection(ollama_client) else 1
 
         if args.list_models:
             try:

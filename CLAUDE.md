@@ -41,11 +41,11 @@ uv run ruff format src tests
 # Type checking
 uv run ty check src
 
-# Run all tests (excludes problematic test_ollama_connection from main.py)
-uv run pytest tests/ -k "not test_ollama_connection"
+# Run all tests
+uv run pytest tests/
 
 # Run only unit tests (faster - ~4 seconds vs 67 seconds for full suite)
-uv run pytest tests/unit/ -k "not test_ollama_connection"
+uv run pytest tests/unit/
 
 # Run single test file
 uv run pytest tests/unit/name/test_renamer.py -v
@@ -234,7 +234,7 @@ Based on extensive work with this codebase, here are key observations from today
 - Expected `ImageProcessingError` but implementation raises `FileOperationError`
 - Expected different sanitization behavior based on incomplete understanding of the pattern cleanup logic
 
-**Pytest Test Discovery Conflicts**: The `test_ollama_connection` function in main.py was being discovered as a test due to pytest's naming conventions, causing fixture errors. Required excluding with `-k "not test_ollama_connection"`.
+**Pytest Test Discovery Conflicts**: Fixed by renaming `test_ollama_connection()` to `check_ollama_connection()` in both main.py files to prevent pytest from incorrectly discovering application code as test cases.
 
 ### Key Insights
 
