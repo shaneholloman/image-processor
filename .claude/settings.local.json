@@ -27,7 +27,13 @@
       "Bash(env)",
       "Bash(sed:*)",
       "Read(//Users/shaneholloman/.claude/**)",
-      "Read(//Users/shaneholloman/**)"
+      "Read(//Users/shaneholloman/**)",
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(time uv run pytest:*)",
+      "Bash(git checkout:*)",
+      "Bash(ruff format:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

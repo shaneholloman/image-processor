@@ -71,21 +71,18 @@ Modes:
     )
 
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose logging"
+        "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
 
     parser.add_argument(
-        "--quiet", "-q",
+        "--quiet",
+        "-q",
         action="store_true",
-        help="Suppress progress bars and non-essential output"
+        help="Suppress progress bars and non-essential output",
     )
 
     parser.add_argument(
-        "--version",
-        action="version",
-        version="Image Processor Name Tool v2.0.0"
+        "--version", action="version", version="Image Processor Name Tool v2.0.0"
     )
 
     # Subcommands
@@ -95,19 +92,16 @@ Modes:
     rename_parser = subparsers.add_parser(
         "rename", help="Rename images using AI-generated descriptions"
     )
+    rename_parser.add_argument("path", help="Directory or file to process")
     rename_parser.add_argument(
-        "path", help="Directory or file to process"
-    )
-    rename_parser.add_argument(
-        "-r", "--recursive",
+        "-r",
+        "--recursive",
         action="store_true",
-        help="Process subdirectories recursively"
+        help="Process subdirectories recursively",
     )
     rename_parser.add_argument(
-        "--prompt",
-        help="Custom prompt for AI description generation"
+        "--prompt", help="Custom prompt for AI description generation"
     )
-
 
     return parser
 
@@ -193,10 +187,16 @@ def handle_rename_command(args: argparse.Namespace) -> int:
             print(f"  Processing time: {results['processing_time']:.1f} seconds")
 
             if results["failed"] > 0:
-                print(f"\nWarning: {results['failed']} files failed processing. Check logs for details.")
+                print(
+                    f"\nWarning: {results['failed']} files failed processing. Check logs for details."
+                )
                 return 1
 
-            success_msg = "Analysis complete!" if args.dry_run else "All images processed successfully!"
+            success_msg = (
+                "Analysis complete!"
+                if args.dry_run
+                else "All images processed successfully!"
+            )
             print(f"\n✓ {success_msg}")
             return 0
 
@@ -207,8 +207,6 @@ def handle_rename_command(args: argparse.Namespace) -> int:
         logger.error(f"Rename command failed: {e}")
         print(f"Error: {e}")
         return 1
-
-
 
 
 def main() -> int:
@@ -284,4 +282,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

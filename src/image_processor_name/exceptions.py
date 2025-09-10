@@ -85,4 +85,3 @@ class WatcherInitializationError(WatcherError):
     """Raised when file system watcher fails to initialize."""
 
     pass
-

@@ -1,0 +1,45 @@
+# Test configuration for image_processor_name tool
+
+# Ollama API Configuration
+ollama:
+  endpoint: "http://localhost:11434/api/generate"
+  model: "llava-llama3:latest"
+  timeout: 30
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# Image Processing Configuration
+images:
+  supported_extensions: [".png", ".jpg", ".jpeg", ".gif", ".bmp"]
+  max_file_size_mb: 50
+  verify_before_processing: true
+
+# Filename Generation Configuration
+filename:
+  prompt: "Describe this image in 4-5 words for testing"
+  pattern_cleanup: true
+  max_length: 80
+  remove_punctuation: true
+  replace_spaces_with: "-"
+  case_conversion: "lower"
+
+# File Operations Configuration
+file_operations:
+  safe_move_retries: 2
+  move_delay_seconds: 0.1
+  backup_originals: false
+  confirm_overwrites: false  # Auto-confirm for testing
+
+# Logging Configuration
+logging:
+  level: "DEBUG"
+  file: "test_image_renamer.log"
+  max_file_size_mb: 5
+  backup_count: 2
+  console_colors: true
+
+# Processing Configuration
+processing:
+  progress_bar: false  # Disable for cleaner test output
+  batch_size: 5
+  concurrent_operations: false

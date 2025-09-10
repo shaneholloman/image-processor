@@ -26,7 +26,10 @@ class ColoredFormatter(logging.Formatter):
         logging.INFO: str(Fore.GREEN) + FORMAT + str(Style.RESET_ALL),
         logging.WARNING: str(Fore.YELLOW) + FORMAT + str(Style.RESET_ALL),
         logging.ERROR: str(Fore.RED) + FORMAT + str(Style.RESET_ALL),
-        logging.CRITICAL: str(Back.RED) + str(Fore.WHITE) + FORMAT + str(Style.RESET_ALL),
+        logging.CRITICAL: str(Back.RED)
+        + str(Fore.WHITE)
+        + FORMAT
+        + str(Style.RESET_ALL),
     }
 
     def format(self, record: logging.LogRecord) -> str:
@@ -109,4 +112,3 @@ def get_logger(name: str) -> logging.Logger:
         Logger instance
     """
     return logging.getLogger(name)
-

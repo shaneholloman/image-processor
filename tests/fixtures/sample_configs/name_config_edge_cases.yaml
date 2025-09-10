@@ -1,0 +1,45 @@
+# Edge case test configuration for image_processor_name tool
+
+# Ollama API Configuration with edge case values
+ollama:
+  endpoint: "http://test-server:9999/api/generate"
+  model: "test-model"
+  timeout: 5
+  retry_attempts: 1
+  retry_delay: 0.1
+
+# Image Processing Configuration with limits
+images:
+  supported_extensions: [".jpg", ".png"]  # Limited formats
+  max_file_size_mb: 1  # Very small limit
+  verify_before_processing: false
+
+# Filename Generation Configuration with edge cases
+filename:
+  prompt: "One word"
+  pattern_cleanup: false
+  max_length: 20  # Very short
+  remove_punctuation: false
+  replace_spaces_with: "_"
+  case_conversion: "upper"
+
+# File Operations Configuration
+file_operations:
+  safe_move_retries: 1
+  move_delay_seconds: 0.01
+  backup_originals: true
+  confirm_overwrites: true
+
+# Logging Configuration
+logging:
+  level: "ERROR"  # Minimal logging
+  file: "error_only.log"
+  max_file_size_mb: 1
+  backup_count: 1
+  console_colors: false
+
+# Processing Configuration
+processing:
+  progress_bar: false
+  batch_size: 1
+  concurrent_operations: false

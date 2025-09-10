@@ -18,4 +18,3 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 
 # Ensure logs directory exists
 LOGS_DIR.mkdir(exist_ok=True)
-

@@ -102,7 +102,7 @@ class OllamaClient:
                     {
                         "role": "user",
                         "content": prompt or "Describe this image in detail.",
-                        "images": [encoded_image]
+                        "images": [encoded_image],
                     }
                 ],
                 "stream": False,
@@ -182,7 +182,7 @@ class OllamaClient:
         """
         try:
             # Try to get model info using the tags endpoint
-            base_url = self.endpoint.replace('/api/chat', '')
+            base_url = self.endpoint.replace("/api/chat", "")
             response = requests.get(
                 f"{base_url}/api/tags",
                 timeout=5,
@@ -211,10 +211,8 @@ class OllamaClient:
             OllamaConnectionError: If request fails
         """
         try:
-            base_url = self.endpoint.replace('/api/chat', '')
-            response = requests.get(
-                f"{base_url}/api/tags", timeout=10
-            )
+            base_url = self.endpoint.replace("/api/chat", "")
+            response = requests.get(f"{base_url}/api/tags", timeout=10)
             response.raise_for_status()
             return response.json()
 

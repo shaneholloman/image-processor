@@ -62,7 +62,7 @@ class ImageRenamer:
 
         # Remove trailing punctuation if configured
         if self.remove_punctuation:
-            filename = filename.rstrip('.,!?;:')
+            filename = filename.rstrip(".,!?;:")
 
         # Apply case conversion
         if self.case_conversion == "lower":
@@ -75,12 +75,12 @@ class ImageRenamer:
 
         if self.pattern_cleanup:
             # Replace non-alphanumeric characters with configured replacement
-            filename = re.sub(r'[^a-zA-Z0-9\s]', '', filename)
+            filename = re.sub(r"[^a-zA-Z0-9\s]", "", filename)
             # Replace spaces with configured character
-            filename = filename.replace(' ', self.replace_spaces_with)
+            filename = filename.replace(" ", self.replace_spaces_with)
             # Replace multiple consecutive replacement characters
             if self.replace_spaces_with:
-                pattern = re.escape(self.replace_spaces_with) + '+'
+                pattern = re.escape(self.replace_spaces_with) + "+"
                 filename = re.sub(pattern, self.replace_spaces_with, filename)
             # Remove leading/trailing replacement characters
             filename = filename.strip(self.replace_spaces_with)
@@ -91,11 +91,13 @@ class ImageRenamer:
             words = filename.split(self.replace_spaces_with)
             result = ""
             for word in words:
-                test_result = result + (self.replace_spaces_with if result else "") + word
+                test_result = (
+                    result + (self.replace_spaces_with if result else "") + word
+                )
                 if len(test_result) > self.max_length:
                     break
                 result = test_result
-            filename = result if result else filename[:self.max_length]
+            filename = result if result else filename[: self.max_length]
 
         # Ensure filename is not empty
         if not filename:
@@ -104,7 +106,9 @@ class ImageRenamer:
         # Add original extension
         return f"{filename}{original_extension}"
 
-    def generate_filename(self, image_path: Path, prompt: str | None = None) -> str | None:
+    def generate_filename(
+        self, image_path: Path, prompt: str | None = None
+    ) -> str | None:
         """
         Generate a new filename for an image using AI description.
 
@@ -171,13 +175,17 @@ class ImageRenamer:
                 logger.info(f"Using unique filename: {new_path.name}")
 
             if dry_run:
-                logger.info(f"DRY RUN: Would rename {image_path.name} -> {new_path.name}")
+                logger.info(
+                    f"DRY RUN: Would rename {image_path.name} -> {new_path.name}"
+                )
                 return True
 
             # Perform the rename
             success = self.file_ops.safe_file_move(image_path, new_path)
             if success:
-                logger.info(f"Successfully renamed: {image_path.name} -> {new_path.name}")
+                logger.info(
+                    f"Successfully renamed: {image_path.name} -> {new_path.name}"
+                )
             return success
 
         except Exception as e:
@@ -215,7 +223,11 @@ class ImageRenamer:
             all_files = list(directory.glob(pattern))
 
             # Filter for image files
-            image_files = [f for f in all_files if f.is_file() and self.file_ops.is_supported_image(f)]
+            image_files = [
+                f
+                for f in all_files
+                if f.is_file() and self.file_ops.is_supported_image(f)
+            ]
 
             if not image_files:
                 logger.warning("No image files found to process")
@@ -234,10 +246,7 @@ class ImageRenamer:
             if show_progress and config.get("processing.progress_bar", True):
                 action = "Analyzing" if dry_run else "Renaming"
                 progress_bar = tqdm(
-                    image_files,
-                    desc=f"{action} images",
-                    unit="img",
-                    colour="green"
+                    image_files, desc=f"{action} images", unit="img", colour="green"
                 )
                 iterator = progress_bar
             else:
@@ -254,10 +263,12 @@ class ImageRenamer:
 
                     # Update progress bar description
                     if progress_bar:
-                        progress_bar.set_postfix({
-                            "processed": processed_count,
-                            "failed": failed_count,
-                        })
+                        progress_bar.set_postfix(
+                            {
+                                "processed": processed_count,
+                                "failed": failed_count,
+                            }
+                        )
 
             finally:
                 if progress_bar:
@@ -281,7 +292,9 @@ class ImageRenamer:
 
         except Exception as e:
             logger.error(f"Directory processing failed: {e}")
-            raise ImageProcessingError(f"Failed to process directory {directory}: {e}") from e
+            raise ImageProcessingError(
+                f"Failed to process directory {directory}: {e}"
+            ) from e
 
     def test_connection(self) -> bool:
         """
@@ -295,4 +308,3 @@ class ImageRenamer:
         except Exception as e:
             logger.error(f"Connection test failed: {e}")
             return False
-

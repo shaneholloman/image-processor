@@ -74,9 +74,7 @@ class OllamaClient:
         except Exception as e:
             raise ImageCorrupted(f"Failed to encode image {image_path}: {e}") from e
 
-    def generate_filename(
-        self, image_path: Path, prompt: str | None = None
-    ) -> str:
+    def generate_filename(self, image_path: Path, prompt: str | None = None) -> str:
         """
         Generate filename description for image using Ollama.
 
@@ -112,7 +110,9 @@ class OllamaClient:
                     "images": [encoded_image],
                 }
 
-                logger.info(f"Generating filename for: {image_path.name} (attempt {attempt + 1})")
+                logger.info(
+                    f"Generating filename for: {image_path.name} (attempt {attempt + 1})"
+                )
 
                 # Make request to Ollama
                 response = requests.post(
@@ -197,7 +197,7 @@ class OllamaClient:
         """
         try:
             # Try to get model info using the tags endpoint
-            base_url = self.endpoint.replace('/api/generate', '')
+            base_url = self.endpoint.replace("/api/generate", "")
             response = requests.get(
                 f"{base_url}/api/tags",
                 timeout=5,
@@ -226,13 +226,10 @@ class OllamaClient:
             OllamaConnectionError: If request fails
         """
         try:
-            base_url = self.endpoint.replace('/api/generate', '')
-            response = requests.get(
-                f"{base_url}/api/tags", timeout=10
-            )
+            base_url = self.endpoint.replace("/api/generate", "")
+            response = requests.get(f"{base_url}/api/tags", timeout=10)
             response.raise_for_status()
             return response.json()
 
         except RequestException as e:
             raise OllamaConnectionError(f"Failed to list models: {e}") from e
-

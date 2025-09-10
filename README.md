@@ -249,6 +249,25 @@ uv run ruff format src tests
 uv run ty check src
 ```
 
+### Tests
+
+```bash
+# Run all tests
+  uv run pytest
+
+  # Run only unit tests
+  uv run pytest tests/unit/ -m unit
+
+  # Run only integration tests (no Ollama required)
+  uv run pytest tests/integration/ -m integration
+
+  # Run Ollama integration tests (requires running Ollama)
+  uv run pytest -m requires_ollama
+
+  # Run with coverage
+  uv run pytest --cov=src --cov-report=html
+```
+
 ### Building and Publishing
 
 ```bash

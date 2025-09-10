@@ -138,4 +138,3 @@ class ConfigManager:
 
 # Global config manager instance
 config = ConfigManager()
-
