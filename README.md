@@ -1,10 +1,17 @@
 # Image Processor
 
-> Note to self, consider trying these models:
-
 ```sh
-ollama run llama3.2-vision:11b
-ollama run gemma3:12b # The simple prompts that were used don't work for Gemma whatsoever. Need to experiment more.
+ollama pull llama3.2-vision:11b
+ollama pull gemma3:12b # The simple prompts that are used don't work for Gemma. Might consider having an external prompt file that would be referenced according to which models are being used instead of actually having the prompts inside of the code source code like we do right now.
+```
+
+The title's good, but it's including an explainer in the output, which is breaking the name of the file:
+
+```log
+2025-09-11 00:38:11,216 - image_processor_name.core.renamer - INFO - Successfully renamed: the-girl-is-holding-a-bunny.jpg -> heres-a-description-of-the-image-in-45-words
+
+
+nature-tenderness-woman-rabbit-ethereal
 ```
 
 An application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images and adds them to a database.
