@@ -4,7 +4,7 @@
 
 ```sh
 ollama run llama3.2-vision:11b
-ollama run gemma3:12b
+ollama run gemma3:12b # The simple prompts that were used don't work for Gemma whatsoever. Need to experiment more.
 ```
 
 An application that processes images to generate detailed descriptions using the Ollama LLaVA model and embeds these descriptions as XMP metadata into the images and adds them to a database.
@@ -398,7 +398,7 @@ Log files are stored in the `logs/` directory.
     ```sh
     # Test connection
     uv run image-processor-meta --check-connection
- 
+
     # Check Ollama status
     ollama list
     ollama serve
