@@ -230,7 +230,8 @@ Based on extensive work with this codebase, here are key observations from today
 **Mock Object Comparison Errors**: Mock objects without explicit attributes caused comparison failures in conditional logic (`if response.status_code >= 500`). Required adding `status_code = 200` to all mock HTTP responses.
 
 **Test-Implementation Mismatch**: Several tests made incorrect assumptions about implementation behavior:
-- Expected `Path.rename()` calls but implementation uses `shutil.copy2()` 
+
+- Expected `Path.rename()` calls but implementation uses `shutil.copy2()`
 - Expected `ImageProcessingError` but implementation raises `FileOperationError`
 - Expected different sanitization behavior based on incomplete understanding of the pattern cleanup logic
 

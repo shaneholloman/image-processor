@@ -9,9 +9,9 @@ from unittest.mock import Mock
 
 import pytest
 from PIL import Image
-from src.image_processor_name.api.ollama_client import OllamaClient
-from src.image_processor_name.core.renamer import ImageRenamer
-from src.image_processor_name.tools.file_operations import FileOperations
+from src.image_processor_name.file_operations import FileOperations
+from src.image_processor_name.ollama_client import OllamaClient
+from src.image_processor_name.renamer import ImageRenamer
 
 
 def pytest_addoption(parser):

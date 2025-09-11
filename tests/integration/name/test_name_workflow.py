@@ -8,9 +8,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 import yaml
-from src.image_processor_name.api.ollama_client import OllamaClient
-from src.image_processor_name.core.renamer import ImageRenamer
-from src.image_processor_name.tools.file_operations import FileOperations
+from src.image_processor_name.file_operations import FileOperations
+from src.image_processor_name.ollama_client import OllamaClient
+from src.image_processor_name.renamer import ImageRenamer
 
 
 def test_single_image_rename_workflow(
@@ -299,7 +299,7 @@ def test_configuration_integration_workflow(temp_dir: Path, sample_name_config: 
     img.save(test_image, "JPEG")
 
     # Mock Ollama response
-    with patch("src.image_processor_name.api.ollama_client.requests.post") as mock_post:
+    with patch("src.image_processor_name.ollama_client.requests.post") as mock_post:
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
         mock_response.status_code = 200
@@ -337,12 +337,12 @@ def test_configuration_integration_workflow(temp_dir: Path, sample_name_config: 
 
         with (
             patch(
-                "src.image_processor_name.tools.config_manager.config"
+                "src.image_processor_name.config_manager.config"
             ) as mock_config1,
-            patch("src.image_processor_name.core.renamer.config") as mock_config2,
-            patch("src.image_processor_name.api.ollama_client.config") as mock_config3,
+            patch("src.image_processor_name.renamer.config") as mock_config2,
+            patch("src.image_processor_name.ollama_client.config") as mock_config3,
             patch(
-                "src.image_processor_name.tools.file_operations.config"
+                "src.image_processor_name.file_operations.config"
             ) as mock_config4,
         ):
             # Set up all config mocks with the same side effect
@@ -376,7 +376,7 @@ def test_progress_reporting_workflow(
     mock_ollama_success.generate_filename.return_value = "Progress test image"
 
     # Enable progress bar in config
-    with patch("src.image_processor_name.tools.config_manager.config") as mock_config:
+    with patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "processing.progress_bar": True
         }.get(key, default)

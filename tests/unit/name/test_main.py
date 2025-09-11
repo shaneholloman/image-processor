@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import src.image_processor_name.main as main_module
-from src.image_processor_name.api.ollama_client import OllamaConnectionError
-from src.image_processor_name.tools.config_manager import ConfigError
+from src.image_processor_name.config_manager import ConfigError
+from src.image_processor_name.ollama_client import OllamaConnectionError
 
 
 def test_create_argument_parser_basic():
@@ -83,8 +83,8 @@ def test_parse_version():
 
 def test_test_ollama_connection_success(capsys):
     """Test successful connection test."""
-    from src.image_processor_name.api.ollama_client import OllamaClient
-    
+    from src.image_processor_name.ollama_client import OllamaClient
+
     with patch.object(OllamaClient, 'test_connection', return_value=True):
         ollama_client = OllamaClient()
         result = ollama_client.check_connection_with_diagnostics()
@@ -97,8 +97,8 @@ def test_test_ollama_connection_success(capsys):
 
 def test_test_ollama_connection_failure(capsys):
     """Test failed connection test."""
-    from src.image_processor_name.api.ollama_client import OllamaClient
-    
+    from src.image_processor_name.ollama_client import OllamaClient
+
     with patch.object(OllamaClient, 'test_connection', return_value=False):
         ollama_client = OllamaClient()
         result = ollama_client.check_connection_with_diagnostics()

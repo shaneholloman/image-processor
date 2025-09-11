@@ -11,8 +11,8 @@ from typing import Any
 import requests
 from requests.exceptions import ConnectionError, RequestException, Timeout
 
-from ..tools.config_manager import config
-from ..tools.log_manager import get_logger
+from .config_manager import config
+from .log_manager import get_logger
 
 logger = get_logger(__name__)
 

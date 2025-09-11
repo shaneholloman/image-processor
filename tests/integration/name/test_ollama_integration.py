@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 from PIL import Image
-from src.image_processor_name.api.ollama_client import (
+from src.image_processor_name.ollama_client import (
     OllamaClient,
     OllamaConnectionError,
     OllamaResponseError,

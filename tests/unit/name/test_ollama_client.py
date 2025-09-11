@@ -7,12 +7,12 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from src.image_processor_name.api.ollama_client import OllamaClient
+from src.image_processor_name.ollama_client import OllamaClient
 
 
 def test_init_with_defaults():
     """Test client initialization with default values."""
-    with patch("src.image_processor_name.tools.config_manager.config") as mock_config:
+    with patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "ollama.endpoint": "http://localhost:11434/api/generate",
             "ollama.model": "llava-llama3:latest",
@@ -44,7 +44,7 @@ def test_encode_image_success(sample_image_small: Path):
         pytest.fail("Encoded string is not valid base64")
 
 
-@patch("src.image_processor_name.api.ollama_client.requests.post")
+@patch("src.image_processor_name.ollama_client.requests.post")
 def test_generate_filename_success(mock_post: Mock, sample_image_small: Path):
     """Test successful filename generation."""
     # Mock successful API response
@@ -61,7 +61,7 @@ def test_generate_filename_success(mock_post: Mock, sample_image_small: Path):
     mock_post.assert_called_once()
 
 
-@patch("src.image_processor_name.api.ollama_client.requests.post")
+@patch("src.image_processor_name.ollama_client.requests.post")
 def test_test_connection_success(mock_post: Mock):
     """Test successful connection test."""
     mock_response = Mock()

@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from src.image_processor_name.tools.file_operations import (
+from src.image_processor_name.file_operations import (
     FileOperationError,
     FileOperations,
     ImageCorrupted,
@@ -105,7 +105,7 @@ def test_safe_file_move_destination_exists_no_overwrite(
     dest_path = sample_image_png.with_suffix(".jpg")
     dest_path.write_bytes(b"existing content")
 
-    with patch("src.image_processor_name.tools.config_manager.config") as mock_config:
+    with patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "file_operations.confirm_overwrites": True
         }.get(key, default)
@@ -163,7 +163,7 @@ def test_safe_file_move_with_backup(sample_image_small: Path, temp_dir: Path):
     # Don't create an existing destination file for this test
     # The backup creation is for the source file, not destination
 
-    with patch("src.image_processor_name.tools.config_manager.config") as mock_config:
+    with patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "images.supported_extensions": [
                 ".png",
@@ -249,7 +249,7 @@ def test_check_file_size_limits(
     test_file = temp_dir / "size_test.jpg"
     test_file.write_bytes(b"x" * (file_size_mb * 1024 * 1024))
 
-    with patch("src.image_processor_name.tools.config_manager.config") as mock_config:
+    with patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "images.supported_extensions": [
                 ".png",

@@ -8,10 +8,10 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from ..api.ollama_client import OllamaClient
-from ..tools.config_manager import config
-from ..tools.file_operations import FileOperations
-from ..tools.log_manager import get_logger
+from .config_manager import config
+from .file_operations import FileOperations
+from .log_manager import get_logger
+from .ollama_client import OllamaClient
 
 logger = get_logger(__name__)
 

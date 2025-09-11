@@ -6,11 +6,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from .api.ollama_client import OllamaClient, OllamaConnectionError
-from .core.renamer import ImageRenamer
-from .tools.config_manager import ConfigError, config
-from .tools.file_operations import FileOperations
-from .tools.log_manager import get_logger, setup_logger
+from .config_manager import ConfigError, config
+from .file_operations import FileOperations
+from .log_manager import get_logger, setup_logger
+from .ollama_client import OllamaClient, OllamaConnectionError
+from .renamer import ImageRenamer
 
 
 def setup_logging() -> None:

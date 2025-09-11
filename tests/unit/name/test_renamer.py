@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from src.image_processor_name.core.renamer import ImageRenamer
+from src.image_processor_name.renamer import ImageRenamer
 
 
 def test_init_with_defaults():
@@ -46,7 +46,7 @@ def test_init_with_custom_dependencies(
 )
 def test_sanitize_filename(description: str, extension: str, expected: str):
     """Test filename sanitization with various inputs."""
-    with patch("src.image_processor_name.tools.config_manager.config") as mock_config:
+    with patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "filename.pattern_cleanup": True,
             "filename.max_length": 100,
@@ -68,7 +68,7 @@ def test_sanitize_filename(description: str, extension: str, expected: str):
 
 def test_sanitize_filename_no_cleanup():
     """Test filename sanitization with pattern cleanup disabled."""
-    with patch("src.image_processor_name.core.renamer.config") as mock_config:
+    with patch("src.image_processor_name.renamer.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "filename.pattern_cleanup": False,
             "filename.max_length": 100,
@@ -95,7 +95,7 @@ def test_sanitize_filename_different_case_conversions():
     ]
 
     for case_type, expected in test_cases:
-        with patch("src.image_processor_name.core.renamer.config") as mock_config:
+        with patch("src.image_processor_name.renamer.config") as mock_config:
 
             def side_effect(key, default, current_case_type=case_type):
                 return {
@@ -167,7 +167,7 @@ def test_generate_filename_verification_enabled(
     sample_image_small: Path,
 ):
     """Test filename generation with image verification enabled."""
-    with patch("src.image_processor_name.tools.config_manager.config") as mock_config:
+    with patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.return_value = True  # verify_before_processing = True
 
         mock_ollama_success.generate_filename.return_value = "verified image"
