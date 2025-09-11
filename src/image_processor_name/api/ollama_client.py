@@ -248,3 +248,24 @@ class OllamaClient:
 
         except RequestException as e:
             raise OllamaConnectionError(f"Failed to list models: {e}") from e
+
+    def check_connection_with_diagnostics(self) -> bool:
+        """
+        Test connection to Ollama API with user-friendly diagnostics.
+
+        Returns:
+            True if connection successful, False otherwise
+        """
+        print("Testing Ollama connection...")
+
+        if self.test_connection():
+            print(f"✓ Successfully connected to Ollama at {self.endpoint}")
+            print(f"✓ Using model: {self.model}")
+            return True
+
+        print(f"✗ Failed to connect to Ollama at {self.endpoint}")
+        print("\nTroubleshooting:")
+        print("1. Ensure Ollama is installed and running")
+        print("2. Check that the LLaVA model is available: ollama pull llava-llama3:latest")
+        print("3. Verify the endpoint URL in configuration")
+        return False

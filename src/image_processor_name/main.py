@@ -101,29 +101,6 @@ Modes:
     return parser
 
 
-def check_ollama_connection(ollama_client: OllamaClient) -> bool:
-    """
-    Test connection to Ollama API.
-
-    Args:
-        ollama_client: Ollama client instance
-
-    Returns:
-        True if connection successful
-    """
-    print("Testing Ollama connection...")
-
-    if ollama_client.test_connection():
-        print(f"✓ Successfully connected to Ollama at {ollama_client.endpoint}")
-        print(f"✓ Using model: {ollama_client.model}")
-        return True
-
-    print(f"✗ Failed to connect to Ollama at {ollama_client.endpoint}")
-    print("\nTroubleshooting:")
-    print("1. Ensure Ollama is installed and running")
-    print("2. Check that the LLaVA model is available: ollama pull llava-llama3:latest")
-    print("3. Verify the endpoint URL in configuration")
-    return False
 
 
 def handle_rename_command(args: argparse.Namespace) -> int:
@@ -230,7 +207,7 @@ def main() -> int:
         # Handle global options that don't need full setup
         if args.check_connection:
             ollama_client = OllamaClient()
-            return 0 if check_ollama_connection(ollama_client) else 1
+            return 0 if ollama_client.check_connection_with_diagnostics() else 1
 
         if args.list_models:
             try:

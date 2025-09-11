@@ -81,24 +81,27 @@ def test_parse_version():
         parser.parse_args(["--version"])
 
 
-def test_test_ollama_connection_success(mock_ollama_success: Mock, capsys):
+def test_test_ollama_connection_success(capsys):
     """Test successful connection test."""
-    mock_ollama_success.endpoint = "http://localhost:11434/api/generate"
-    mock_ollama_success.model = "llava-llama3:latest"
-
-    result = main_module.check_ollama_connection(mock_ollama_success)
+    from src.image_processor_name.api.ollama_client import OllamaClient
+    
+    with patch.object(OllamaClient, 'test_connection', return_value=True):
+        ollama_client = OllamaClient()
+        result = ollama_client.check_connection_with_diagnostics()
 
     assert result is True
     captured = capsys.readouterr()
     assert "Successfully connected to Ollama" in captured.out
-    assert "Using model: llava-llama3:latest" in captured.out
+    assert "Using model:" in captured.out
 
 
-def test_test_ollama_connection_failure(mock_ollama_error: Mock, capsys):
+def test_test_ollama_connection_failure(capsys):
     """Test failed connection test."""
-    mock_ollama_error.endpoint = "http://localhost:11434/api/generate"
-
-    result = main_module.check_ollama_connection(mock_ollama_error)
+    from src.image_processor_name.api.ollama_client import OllamaClient
+    
+    with patch.object(OllamaClient, 'test_connection', return_value=False):
+        ollama_client = OllamaClient()
+        result = ollama_client.check_connection_with_diagnostics()
 
     assert result is False
     captured = capsys.readouterr()
@@ -279,7 +282,7 @@ def test_main_test_connection_success(mock_setup_logging):
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client = Mock()
-        mock_client.test_connection.return_value = True
+        mock_client.check_connection_with_diagnostics.return_value = True
         mock_client_class.return_value = mock_client
 
         result = main_module.main()
@@ -295,7 +298,7 @@ def test_main_test_connection_failure(mock_setup_logging):
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
         mock_client = Mock()
-        mock_client.test_connection.return_value = False
+        mock_client.check_connection_with_diagnostics.return_value = False
         mock_client_class.return_value = mock_client
 
         result = main_module.main()
