@@ -2,16 +2,16 @@
 Shared test fixtures for image processor test suite.
 """
 
+import collections.abc
+import pathlib
 import tempfile
-from collections.abc import Generator
-from pathlib import Path
-from unittest.mock import Mock
+import unittest.mock
 
+import PIL.Image
 import pytest
-from PIL import Image
-from src.image_processor_name.file_operations import FileOperations
-from src.image_processor_name.ollama_client import OllamaClient
-from src.image_processor_name.renamer import ImageRenamer
+import src.image_processor_name.file_operations
+import src.image_processor_name.ollama_client
+import src.image_processor_name.renamer
 
 
 def pytest_addoption(parser):
@@ -34,14 +34,14 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture
-def temp_dir() -> Generator[Path]:
+def temp_dir() -> collections.abc.Generator[pathlib.Path]:
     """Create a temporary directory for test files."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        yield Path(tmp_dir)
+        yield pathlib.Path(tmp_dir)
 
 
 @pytest.fixture
-def temp_config_dir(temp_dir: Path) -> Path:
+def temp_config_dir(temp_dir: pathlib.Path) -> pathlib.Path:
     """Create a temporary config directory."""
     config_dir = temp_dir / "config"
     config_dir.mkdir()
@@ -110,34 +110,34 @@ def invalid_config() -> dict:
 
 
 @pytest.fixture
-def sample_image_small(temp_dir: Path) -> Path:
+def sample_image_small(temp_dir: pathlib.Path) -> pathlib.Path:
     """Create a small test JPEG image."""
     image_path = temp_dir / "test_image.jpg"
     # Create a small 10x10 red image
-    img = Image.new("RGB", (10, 10), color="red")
+    img = PIL.Image.new("RGB", (10, 10), color="red")
     img.save(image_path, "JPEG")
     return image_path
 
 
 @pytest.fixture
-def sample_image_png(temp_dir: Path) -> Path:
+def sample_image_png(temp_dir: pathlib.Path) -> pathlib.Path:
     """Create a small test PNG image."""
     image_path = temp_dir / "test_image.png"
     # Create a small 10x10 blue image
-    img = Image.new("RGB", (10, 10), color="blue")
+    img = PIL.Image.new("RGB", (10, 10), color="blue")
     img.save(image_path, "PNG")
     return image_path
 
 
 @pytest.fixture
-def sample_images(temp_dir: Path) -> list[Path]:
+def sample_images(temp_dir: pathlib.Path) -> list[pathlib.Path]:
     """Create multiple sample images for batch testing."""
     images = []
     for i, (fmt, ext) in enumerate(
         [("JPEG", ".jpg"), ("PNG", ".png"), ("GIF", ".gif")]
     ):
         image_path = temp_dir / f"test_image_{i}{ext}"
-        img = Image.new("RGB", (10, 10), color=["red", "green", "blue"][i])
+        img = PIL.Image.new("RGB", (10, 10), color=["red", "green", "blue"][i])
         if fmt == "GIF":
             img.save(image_path, fmt, save_all=True)
         else:
@@ -147,7 +147,7 @@ def sample_images(temp_dir: Path) -> list[Path]:
 
 
 @pytest.fixture
-def corrupted_image(temp_dir: Path) -> Path:
+def corrupted_image(temp_dir: pathlib.Path) -> pathlib.Path:
     """Create a corrupted image file for error testing."""
     image_path = temp_dir / "corrupted.jpg"
     # Write invalid JPEG data
@@ -156,17 +156,17 @@ def corrupted_image(temp_dir: Path) -> Path:
 
 
 @pytest.fixture
-def large_image(temp_dir: Path) -> Path:
+def large_image(temp_dir: pathlib.Path) -> pathlib.Path:
     """Create a larger test image."""
     image_path = temp_dir / "large_image.jpg"
     # Create a 100x100 image
-    img = Image.new("RGB", (100, 100), color="green")
+    img = PIL.Image.new("RGB", (100, 100), color="green")
     img.save(image_path, "JPEG")
     return image_path
 
 
 @pytest.fixture
-def temp_image_dir(temp_dir: Path, sample_images: list[Path]) -> Path:
+def temp_image_dir(temp_dir: pathlib.Path, sample_images: list[pathlib.Path]) -> pathlib.Path:
     """Create a directory with sample images."""
     image_dir = temp_dir / "images"
     image_dir.mkdir()
@@ -180,9 +180,9 @@ def temp_image_dir(temp_dir: Path, sample_images: list[Path]) -> Path:
 
 
 @pytest.fixture
-def mock_ollama_success() -> Mock:
+def mock_ollama_success() -> unittest.mock.Mock:
     """Mock successful Ollama API responses."""
-    mock_client = Mock(spec=OllamaClient)
+    mock_client = unittest.mock.Mock(spec=src.image_processor_name.ollama_client.OllamaClient)
     mock_client.test_connection.return_value = True
     mock_client.generate_filename.return_value = "beautiful sunset beach scene"
     mock_client.list_models.return_value = {"models": [{"name": "llava-llama3:latest"}]}
@@ -190,9 +190,9 @@ def mock_ollama_success() -> Mock:
 
 
 @pytest.fixture
-def mock_ollama_error() -> Mock:
+def mock_ollama_error() -> unittest.mock.Mock:
     """Mock Ollama API error conditions."""
-    mock_client = Mock(spec=OllamaClient)
+    mock_client = unittest.mock.Mock(spec=src.image_processor_name.ollama_client.OllamaClient)
     mock_client.test_connection.return_value = False
     mock_client.generate_filename.side_effect = Exception("Connection failed")
     mock_client.list_models.side_effect = Exception("API unavailable")
@@ -200,9 +200,9 @@ def mock_ollama_error() -> Mock:
 
 
 @pytest.fixture
-def mock_file_operations() -> Mock:
+def mock_file_operations() -> unittest.mock.Mock:
     """Mock file operations for testing without actual file system changes."""
-    mock_ops = Mock(spec=FileOperations)
+    mock_ops = unittest.mock.Mock(spec=src.image_processor_name.file_operations.FileOperations)
     mock_ops.is_supported_image.return_value = True
     mock_ops.verify_image.return_value = None
     mock_ops.safe_file_move.return_value = True
@@ -212,14 +212,14 @@ def mock_file_operations() -> Mock:
 
 @pytest.fixture
 def image_renamer(
-    mock_ollama_success: Mock, mock_file_operations: Mock
-) -> ImageRenamer:
+    mock_ollama_success: unittest.mock.Mock, mock_file_operations: unittest.mock.Mock
+) -> src.image_processor_name.renamer.ImageRenamer:
     """Create an ImageRenamer instance with mocked dependencies."""
-    return ImageRenamer(mock_ollama_success, mock_file_operations)
+    return src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
 
 
 @pytest.fixture
-def nested_image_dir(temp_dir: Path) -> Path:
+def nested_image_dir(temp_dir: pathlib.Path) -> pathlib.Path:
     """Create a nested directory structure with images."""
     # Create directory structure
     base_dir = temp_dir / "nested_images"
@@ -232,14 +232,14 @@ def nested_image_dir(temp_dir: Path) -> Path:
     # Create images in each directory
     for i, directory in enumerate([base_dir, sub_dir1, sub_dir2]):
         image_path = directory / f"image_{i}.jpg"
-        img = Image.new("RGB", (10, 10), color=["red", "green", "blue"][i])
+        img = PIL.Image.new("RGB", (10, 10), color=["red", "green", "blue"][i])
         img.save(image_path, "JPEG")
 
     return base_dir
 
 
 @pytest.fixture
-def unsupported_files(temp_dir: Path) -> list[Path]:
+def unsupported_files(temp_dir: pathlib.Path) -> list[pathlib.Path]:
     """Create files with unsupported extensions."""
     files = []
     for ext in [".txt", ".pdf", ".doc", ".mp4"]:

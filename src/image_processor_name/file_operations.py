@@ -3,16 +3,16 @@ Safe file operation utilities for image processing.
 """
 
 import gc
+import pathlib
 import shutil
 import time
-from pathlib import Path
 
-from PIL import Image
+import PIL.Image
 
-from .config_manager import config
-from .log_manager import get_logger
+import image_processor_name.config_manager
+import image_processor_name.log_manager
 
-logger = get_logger(__name__)
+logger = image_processor_name.log_manager.get_logger(__name__)
 
 
 # File operation exceptions
@@ -42,19 +42,19 @@ class FileOperations:
     def __init__(self) -> None:
         """Initialize file operations with configuration."""
         self.supported_extensions = tuple(
-            config.get(
+            image_processor_name.config_manager.config.get(
                 "images.supported_extensions", [".png", ".jpg", ".jpeg", ".gif", ".bmp"]
             )
         )
         self.max_file_size = (
-            config.get("images.max_file_size_mb", 50) * 1024 * 1024
+            image_processor_name.config_manager.config.get("images.max_file_size_mb", 50) * 1024 * 1024
         )  # Convert to bytes
-        self.max_retries = config.get("file_operations.safe_move_retries", 3)
-        self.move_delay = config.get("file_operations.move_delay_seconds", 0.5)
-        self.backup_originals = config.get("file_operations.backup_originals", False)
-        self.confirm_overwrites = config.get("file_operations.confirm_overwrites", True)
+        self.max_retries = image_processor_name.config_manager.config.get("file_operations.safe_move_retries", 3)
+        self.move_delay = image_processor_name.config_manager.config.get("file_operations.move_delay_seconds", 0.5)
+        self.backup_originals = image_processor_name.config_manager.config.get("file_operations.backup_originals", False)
+        self.confirm_overwrites = image_processor_name.config_manager.config.get("file_operations.confirm_overwrites", True)
 
-    def is_supported_image(self, file_path: Path) -> bool:
+    def is_supported_image(self, file_path: pathlib.Path) -> bool:
         """
         Check if file is a supported image format.
 
@@ -66,7 +66,7 @@ class FileOperations:
         """
         return file_path.suffix.lower() in self.supported_extensions
 
-    def verify_image(self, image_path: Path) -> bool:
+    def verify_image(self, image_path: pathlib.Path) -> bool:
         """
         Verify image file is valid and close all handles.
 
@@ -99,7 +99,7 @@ class FileOperations:
             )
 
         try:
-            img = Image.open(image_path)
+            img = PIL.Image.open(image_path)
             img.verify()
             img.close()
             # Force garbage collection to ensure handles are released
@@ -111,7 +111,7 @@ class FileOperations:
                 f"Image verification failed for {image_path}: {e}"
             ) from e
 
-    def safe_file_move(self, src: Path, dst: Path) -> bool:
+    def safe_file_move(self, src: pathlib.Path, dst: pathlib.Path) -> bool:
         """
         Safely move a file using copy and delete strategy.
 
@@ -198,7 +198,7 @@ class FileOperations:
 
         return False
 
-    def find_image_files(self, directory: Path, recursive: bool = False) -> list[Path]:
+    def find_image_files(self, directory: pathlib.Path, recursive: bool = False) -> list[pathlib.Path]:
         """
         Find all supported image files in directory.
 
@@ -232,7 +232,7 @@ class FileOperations:
         )
         return image_files
 
-    def get_unique_filename(self, base_path: Path, suffix: str = "") -> Path:
+    def get_unique_filename(self, base_path: pathlib.Path, suffix: str = "") -> pathlib.Path:
         """
         Generate a unique filename by appending a counter if necessary.
 

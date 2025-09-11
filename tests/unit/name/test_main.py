@@ -3,13 +3,13 @@ Unit tests for image_processor_name main CLI module.
 """
 
 import argparse
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+import pathlib
+import unittest.mock
 
 import pytest
+import src.image_processor_name.config_manager
 import src.image_processor_name.main as main_module
-from src.image_processor_name.config_manager import ConfigError
-from src.image_processor_name.ollama_client import OllamaConnectionError
+import src.image_processor_name.ollama_client
 
 
 def test_create_argument_parser_basic():
@@ -85,7 +85,7 @@ def test_test_ollama_connection_success(capsys):
     """Test successful connection test."""
     from src.image_processor_name.ollama_client import OllamaClient
 
-    with patch.object(OllamaClient, 'test_connection', return_value=True):
+    with unittest.mock.patch.object(src.image_processor_name.ollama_client.OllamaClient, 'test_connection', return_value=True):
         ollama_client = OllamaClient()
         result = ollama_client.check_connection_with_diagnostics()
 
@@ -99,7 +99,7 @@ def test_test_ollama_connection_failure(capsys):
     """Test failed connection test."""
     from src.image_processor_name.ollama_client import OllamaClient
 
-    with patch.object(OllamaClient, 'test_connection', return_value=False):
+    with unittest.mock.patch.object(src.image_processor_name.ollama_client.OllamaClient, 'test_connection', return_value=False):
         ollama_client = OllamaClient()
         result = ollama_client.check_connection_with_diagnostics()
 
@@ -109,25 +109,25 @@ def test_test_ollama_connection_failure(capsys):
     assert "Troubleshooting:" in captured.out
 
 
-def test_handle_rename_command_file_success(sample_image_small: Path):
+def test_handle_rename_command_file_success(sample_image_small: pathlib.Path):
     """Test successful rename of single file."""
-    args = MagicMock()
+    args = unittest.mock.MagicMock()
     args.path = str(sample_image_small)
     args.dry_run = False
     args.recursive = False
     args.quiet = False
 
     with (
-        patch("src.image_processor_name.main.OllamaClient"),
-        patch("src.image_processor_name.main.FileOperations") as mock_file_ops_class,
-        patch("src.image_processor_name.main.ImageRenamer") as mock_renamer_class,
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient"),
+        unittest.mock.patch("image_processor_name.file_operations.FileOperations") as mock_file_ops_class,
+        unittest.mock.patch("image_processor_name.renamer.ImageRenamer") as mock_renamer_class,
     ):
-        mock_renamer = Mock()
+        mock_renamer = unittest.mock.Mock()
         mock_renamer.test_connection.return_value = True
         mock_renamer.rename_single_image.return_value = True
         mock_renamer_class.return_value = mock_renamer
 
-        mock_file_ops = Mock()
+        mock_file_ops = unittest.mock.Mock()
         mock_file_ops.is_supported_image.return_value = True
         mock_file_ops_class.return_value = mock_file_ops
 
@@ -139,7 +139,7 @@ def test_handle_rename_command_file_success(sample_image_small: Path):
 
 def test_handle_rename_command_file_not_found():
     """Test rename command with non-existent file."""
-    args = MagicMock()
+    args = unittest.mock.MagicMock()
     args.path = "/does/not/exist.jpg"
     args.dry_run = False
 
@@ -148,17 +148,17 @@ def test_handle_rename_command_file_not_found():
     assert result == 1
 
 
-def test_handle_rename_command_unsupported_format(temp_dir: Path):
+def test_handle_rename_command_unsupported_format(temp_dir: pathlib.Path):
     """Test rename command with unsupported file format."""
     unsupported_file = temp_dir / "document.txt"
     unsupported_file.write_text("Not an image")
 
-    args = MagicMock()
+    args = unittest.mock.MagicMock()
     args.path = str(unsupported_file)
     args.dry_run = False
 
-    with patch("src.image_processor_name.main.FileOperations") as mock_file_ops_class:
-        mock_file_ops = Mock()
+    with unittest.mock.patch("image_processor_name.file_operations.FileOperations") as mock_file_ops_class:
+        mock_file_ops = unittest.mock.Mock()
         mock_file_ops.is_supported_image.return_value = False
         mock_file_ops_class.return_value = mock_file_ops
 
@@ -167,20 +167,20 @@ def test_handle_rename_command_unsupported_format(temp_dir: Path):
         assert result == 1
 
 
-def test_handle_rename_command_directory_success(temp_image_dir: Path):
+def test_handle_rename_command_directory_success(temp_image_dir: pathlib.Path):
     """Test successful directory rename operation."""
-    args = MagicMock()
+    args = unittest.mock.MagicMock()
     args.path = str(temp_image_dir)
     args.dry_run = False
     args.recursive = True
     args.quiet = False
 
     with (
-        patch("src.image_processor_name.main.OllamaClient"),
-        patch("src.image_processor_name.main.FileOperations"),
-        patch("src.image_processor_name.main.ImageRenamer") as mock_renamer_class,
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient"),
+        unittest.mock.patch("image_processor_name.file_operations.FileOperations"),
+        unittest.mock.patch("image_processor_name.renamer.ImageRenamer") as mock_renamer_class,
     ):
-        mock_renamer = Mock()
+        mock_renamer = unittest.mock.Mock()
         mock_renamer.test_connection.return_value = True
         mock_renamer.rename_directory.return_value = {
             "total_files": 3,
@@ -197,20 +197,20 @@ def test_handle_rename_command_directory_success(temp_image_dir: Path):
         mock_renamer.rename_directory.assert_called_once()
 
 
-def test_handle_rename_command_directory_with_failures(temp_image_dir: Path):
+def test_handle_rename_command_directory_with_failures(temp_image_dir: pathlib.Path):
     """Test directory rename with some failures."""
-    args = MagicMock()
+    args = unittest.mock.MagicMock()
     args.path = str(temp_image_dir)
     args.dry_run = False
     args.recursive = False
     args.quiet = False
 
     with (
-        patch("src.image_processor_name.main.OllamaClient"),
-        patch("src.image_processor_name.main.FileOperations"),
-        patch("src.image_processor_name.main.ImageRenamer") as mock_renamer_class,
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient"),
+        unittest.mock.patch("image_processor_name.file_operations.FileOperations"),
+        unittest.mock.patch("image_processor_name.renamer.ImageRenamer") as mock_renamer_class,
     ):
-        mock_renamer = Mock()
+        mock_renamer = unittest.mock.Mock()
         mock_renamer.test_connection.return_value = True
         mock_renamer.rename_directory.return_value = {
             "total_files": 3,
@@ -226,18 +226,18 @@ def test_handle_rename_command_directory_with_failures(temp_image_dir: Path):
         assert result == 1  # Should return error code when there are failures
 
 
-def test_handle_rename_command_connection_failure(sample_image_small: Path):
+def test_handle_rename_command_connection_failure(sample_image_small: pathlib.Path):
     """Test rename command when Ollama connection fails."""
-    args = MagicMock()
+    args = unittest.mock.MagicMock()
     args.path = str(sample_image_small)
     args.dry_run = False
 
     with (
-        patch("src.image_processor_name.main.OllamaClient"),
-        patch("src.image_processor_name.main.FileOperations"),
-        patch("src.image_processor_name.main.ImageRenamer") as mock_renamer_class,
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient"),
+        unittest.mock.patch("image_processor_name.file_operations.FileOperations"),
+        unittest.mock.patch("image_processor_name.renamer.ImageRenamer") as mock_renamer_class,
     ):
-        mock_renamer = Mock()
+        mock_renamer = unittest.mock.Mock()
         mock_renamer.test_connection.return_value = False
         mock_renamer_class.return_value = mock_renamer
 
@@ -246,24 +246,24 @@ def test_handle_rename_command_connection_failure(sample_image_small: Path):
         assert result == 1
 
 
-def test_handle_rename_command_dry_run(sample_image_small: Path):
+def test_handle_rename_command_dry_run(sample_image_small: pathlib.Path):
     """Test rename command in dry run mode."""
-    args = MagicMock()
+    args = unittest.mock.MagicMock()
     args.path = str(sample_image_small)
     args.dry_run = True
     args.recursive = False
     args.quiet = False
 
     with (
-        patch("src.image_processor_name.main.OllamaClient"),
-        patch("src.image_processor_name.main.FileOperations") as mock_file_ops_class,
-        patch("src.image_processor_name.main.ImageRenamer") as mock_renamer_class,
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient"),
+        unittest.mock.patch("image_processor_name.file_operations.FileOperations") as mock_file_ops_class,
+        unittest.mock.patch("image_processor_name.renamer.ImageRenamer") as mock_renamer_class,
     ):
-        mock_renamer = Mock()
+        mock_renamer = unittest.mock.Mock()
         mock_renamer.rename_single_image.return_value = True
         mock_renamer_class.return_value = mock_renamer
 
-        mock_file_ops = Mock()
+        mock_file_ops = unittest.mock.Mock()
         mock_file_ops.is_supported_image.return_value = True
         mock_file_ops_class.return_value = mock_file_ops
 
@@ -274,14 +274,14 @@ def test_handle_rename_command_dry_run(sample_image_small: Path):
         mock_renamer.test_connection.assert_not_called()
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_test_connection_success(mock_setup_logging):
     """Test main function with successful connection test."""
     with (
-        patch("sys.argv", ["image-processor-name", "--check-connection"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--check-connection"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
-        mock_client = Mock()
+        mock_client = unittest.mock.Mock()
         mock_client.check_connection_with_diagnostics.return_value = True
         mock_client_class.return_value = mock_client
 
@@ -290,14 +290,14 @@ def test_main_test_connection_success(mock_setup_logging):
         assert result == 0
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_test_connection_failure(mock_setup_logging):
     """Test main function with failed connection test."""
     with (
-        patch("sys.argv", ["image-processor-name", "--check-connection"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--check-connection"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
-        mock_client = Mock()
+        mock_client = unittest.mock.Mock()
         mock_client.check_connection_with_diagnostics.return_value = False
         mock_client_class.return_value = mock_client
 
@@ -306,14 +306,14 @@ def test_main_test_connection_failure(mock_setup_logging):
         assert result == 1
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_list_models_success(mock_setup_logging):
     """Test main function with successful model listing."""
     with (
-        patch("sys.argv", ["image-processor-name", "--list-models"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--list-models"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
-        mock_client = Mock()
+        mock_client = unittest.mock.Mock()
         mock_client.list_models.return_value = {
             "models": [{"name": "llava-llama3:latest"}]
         }
@@ -324,14 +324,14 @@ def test_main_list_models_success(mock_setup_logging):
         assert result == 0
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_list_models_error(mock_setup_logging):
     """Test main function with model listing error."""
     with (
-        patch("sys.argv", ["image-processor-name", "--list-models"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--list-models"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
-        mock_client = Mock()
+        mock_client = unittest.mock.Mock()
         mock_client.list_models.side_effect = Exception("API error")
         mock_client_class.return_value = mock_client
 
@@ -340,13 +340,13 @@ def test_main_list_models_error(mock_setup_logging):
         assert result == 1
 
 
-@patch("src.image_processor_name.main.setup_logging")
-@patch("src.image_processor_name.main.handle_rename_command")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.handle_rename_command")
 def test_main_rename_command(
-    mock_handle_rename, mock_setup_logging, sample_image_small: Path
+    mock_handle_rename, mock_setup_logging, sample_image_small: pathlib.Path
 ):
     """Test main function with rename command."""
-    with patch("sys.argv", ["image-processor-name", "rename", str(sample_image_small)]):
+    with unittest.mock.patch("sys.argv", ["image-processor-name", "rename", str(sample_image_small)]):
         mock_handle_rename.return_value = 0
 
         result = main_module.main()
@@ -355,49 +355,49 @@ def test_main_rename_command(
         mock_handle_rename.assert_called_once()
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_no_command(mock_setup_logging):
     """Test main function with no command specified."""
-    with patch("sys.argv", ["image-processor-name"]):
+    with unittest.mock.patch("sys.argv", ["image-processor-name"]):
         result = main_module.main()
 
         assert result == 1
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_configuration_error(mock_setup_logging):
     """Test main function with configuration error."""
     with (
-        patch("sys.argv", ["image-processor-name", "--check-connection"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--check-connection"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
-        mock_client_class.side_effect = ConfigError("Invalid config")
+        mock_client_class.side_effect = src.image_processor_name.config_manager.ConfigError("Invalid config")
 
         result = main_module.main()
 
         assert result == 1
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_ollama_connection_error(mock_setup_logging):
     """Test main function with Ollama connection error."""
     with (
-        patch("sys.argv", ["image-processor-name", "--check-connection"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--check-connection"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
-        mock_client_class.side_effect = OllamaConnectionError("Connection failed")
+        mock_client_class.side_effect = src.image_processor_name.ollama_client.OllamaConnectionError("Connection failed")
 
         result = main_module.main()
 
         assert result == 1
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_keyboard_interrupt(mock_setup_logging):
     """Test main function with keyboard interrupt."""
     with (
-        patch("sys.argv", ["image-processor-name", "--check-connection"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--check-connection"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
         mock_client_class.side_effect = KeyboardInterrupt()
 
@@ -406,18 +406,18 @@ def test_main_keyboard_interrupt(mock_setup_logging):
         assert result == 130
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_verbose_logging(mock_setup_logging):
     """Test main function with verbose logging enabled."""
     with (
-        patch("sys.argv", ["image-processor-name", "-v", "--check-connection"]),
-        patch("src.image_processor_name.main.get_logger") as mock_get_logger,
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "-v", "--check-connection"]),
+        unittest.mock.patch("image_processor_name.log_manager.get_logger") as mock_get_logger,
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
-        mock_logger = Mock()
+        mock_logger = unittest.mock.Mock()
         mock_get_logger.return_value = mock_logger
 
-        mock_client = Mock()
+        mock_client = unittest.mock.Mock()
         mock_client.test_connection.return_value = True
         mock_client_class.return_value = mock_client
 
@@ -428,12 +428,12 @@ def test_main_verbose_logging(mock_setup_logging):
         mock_logger.setLevel.assert_called_once()
 
 
-@patch("src.image_processor_name.main.setup_logging")
+@unittest.mock.patch("src.image_processor_name.main.setup_logging")
 def test_main_unexpected_error(mock_setup_logging):
     """Test main function with unexpected error."""
     with (
-        patch("sys.argv", ["image-processor-name", "--check-connection"]),
-        patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
+        unittest.mock.patch("sys.argv", ["image-processor-name", "--check-connection"]),
+        unittest.mock.patch("image_processor_name.ollama_client.OllamaClient") as mock_client_class,
     ):
         mock_client_class.side_effect = RuntimeError("Unexpected error")
 

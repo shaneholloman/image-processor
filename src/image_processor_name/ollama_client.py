@@ -4,17 +4,17 @@ Ollama API client for image filename generation.
 
 import base64
 import json
+import pathlib
 import time
-from pathlib import Path
-from typing import Any
+import typing
 
 import requests
-from requests.exceptions import ConnectionError, RequestException, Timeout
+import requests.exceptions
 
-from .config_manager import config
-from .log_manager import get_logger
+import image_processor_name.config_manager
+import image_processor_name.log_manager
 
-logger = get_logger(__name__)
+logger = image_processor_name.log_manager.get_logger(__name__)
 
 
 # Ollama-specific exceptions
@@ -55,17 +55,17 @@ class OllamaClient:
             model: Model name to use
             timeout: Request timeout in seconds
         """
-        self.endpoint = endpoint or config.get(
+        self.endpoint = endpoint or image_processor_name.config_manager.config.get(
             "ollama.endpoint", "http://localhost:11434/api/generate"
         )
-        self.model = model or config.get("ollama.model", "llava-llama3:latest")
-        self.timeout = timeout or config.get("ollama.timeout", 30)
-        self.retry_attempts = config.get("ollama.retry_attempts", 3)
-        self.retry_delay = config.get("ollama.retry_delay", 1.0)
+        self.model = model or image_processor_name.config_manager.config.get("ollama.model", "llava-llama3:latest")
+        self.timeout = timeout or image_processor_name.config_manager.config.get("ollama.timeout", 30)
+        self.retry_attempts = image_processor_name.config_manager.config.get("ollama.retry_attempts", 3)
+        self.retry_delay = image_processor_name.config_manager.config.get("ollama.retry_delay", 1.0)
 
         logger.info(f"Initialized Ollama client: {self.endpoint} (model: {self.model})")
 
-    def encode_image(self, image_path: Path) -> str:
+    def encode_image(self, image_path: pathlib.Path) -> str:
         """
         Encode image file to base64 string.
 
@@ -89,7 +89,7 @@ class OllamaClient:
         except Exception as e:
             raise ImageCorrupted(f"Failed to encode image {image_path}: {e}") from e
 
-    def generate_filename(self, image_path: Path, prompt: str | None = None) -> str:
+    def generate_filename(self, image_path: pathlib.Path, prompt: str | None = None) -> str:
         """
         Generate filename description for image using Ollama.
 
@@ -110,7 +110,7 @@ class OllamaClient:
 
         # Use configured prompt if none provided
         if prompt is None:
-            prompt = config.get("filename.prompt", "Describe this image in 4-5 words")
+            prompt = image_processor_name.config_manager.config.get("filename.prompt", "Describe this image in 4-5 words")
 
         for attempt in range(self.retry_attempts):
             try:
@@ -176,9 +176,9 @@ class OllamaClient:
 
                 return description
 
-            except (Timeout, ConnectionError) as e:
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
                 if attempt == self.retry_attempts - 1:
-                    if isinstance(e, Timeout):
+                    if isinstance(e, requests.exceptions.Timeout):
                         raise OllamaTimeoutError(
                             f"Request to Ollama timed out after {self.timeout}s"
                         ) from e
@@ -191,7 +191,7 @@ class OllamaClient:
                 )
                 time.sleep(self.retry_delay)
 
-            except RequestException as e:
+            except requests.exceptions.RequestException as e:
                 if attempt == self.retry_attempts - 1:
                     raise OllamaConnectionError(f"Request to Ollama failed: {e}") from e
 
@@ -230,7 +230,7 @@ class OllamaClient:
             logger.warning(f"Ollama connection test failed: {e}")
             return False
 
-    def list_models(self) -> dict[str, Any]:
+    def list_models(self) -> dict[str, typing.Any]:
         """
         List available models from Ollama.
 
@@ -246,7 +246,7 @@ class OllamaClient:
             response.raise_for_status()
             return response.json()
 
-        except RequestException as e:
+        except requests.exceptions.RequestException as e:
             raise OllamaConnectionError(f"Failed to list models: {e}") from e
 
     def check_connection_with_diagnostics(self) -> bool:

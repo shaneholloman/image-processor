@@ -2,24 +2,24 @@
 Integration tests for end-to-end image renaming workflows.
 """
 
+import pathlib
 import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
+import unittest.mock
 
 import pytest
+import src.image_processor_name.file_operations
+import src.image_processor_name.ollama_client
+import src.image_processor_name.renamer
 import yaml
-from src.image_processor_name.file_operations import FileOperations
-from src.image_processor_name.ollama_client import OllamaClient
-from src.image_processor_name.renamer import ImageRenamer
 
 
 def test_single_image_rename_workflow(
-    sample_image_small: Path, mock_ollama_success: Mock
+    sample_image_small: pathlib.Path, mock_ollama_success: unittest.mock.Mock
 ):
     """Test complete workflow for renaming a single image."""
     # Create a temporary copy of the image with a generic name
     with tempfile.TemporaryDirectory() as tmp_dir:
-        temp_path = Path(tmp_dir)
+        temp_path = pathlib.Path(tmp_dir)
         test_image = temp_path / "IMG_1234.jpg"
         test_image.write_bytes(sample_image_small.read_bytes())
 
@@ -29,8 +29,8 @@ def test_single_image_rename_workflow(
         )
 
         # Create renamer with real file operations but mocked Ollama
-        file_ops = FileOperations()
-        renamer = ImageRenamer(mock_ollama_success, file_ops)
+        file_ops = src.image_processor_name.file_operations.FileOperations()
+        renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
         # Perform the rename
         result = renamer.rename_single_image(test_image)
@@ -44,7 +44,7 @@ def test_single_image_rename_workflow(
         assert renamed_files[0].exists()
 
 
-def test_directory_rename_workflow(temp_image_dir: Path, mock_ollama_success: Mock):
+def test_directory_rename_workflow(temp_image_dir: pathlib.Path, mock_ollama_success: unittest.mock.Mock):
     """Test complete workflow for renaming images in a directory."""
     # Mock different descriptions for different images
     descriptions = [
@@ -63,8 +63,8 @@ def test_directory_rename_workflow(temp_image_dir: Path, mock_ollama_success: Mo
     original_count = len(original_files)
 
     # Create renamer and process directory
-    file_ops = FileOperations()
-    renamer = ImageRenamer(mock_ollama_success, file_ops)
+    file_ops = src.image_processor_name.file_operations.FileOperations()
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
     results = renamer.rename_directory(temp_image_dir, show_progress=False)
 
@@ -79,7 +79,7 @@ def test_directory_rename_workflow(temp_image_dir: Path, mock_ollama_success: Mo
 
 
 def test_recursive_directory_workflow(
-    nested_image_dir: Path, mock_ollama_success: Mock
+    nested_image_dir: pathlib.Path, mock_ollama_success: unittest.mock.Mock
 ):
     """Test recursive directory processing workflow."""
     mock_ollama_success.generate_filename.return_value = "Nested image description"
@@ -89,8 +89,8 @@ def test_recursive_directory_workflow(
     original_count = len(original_images)
 
     # Create renamer and process recursively
-    file_ops = FileOperations()
-    renamer = ImageRenamer(mock_ollama_success, file_ops)
+    file_ops = src.image_processor_name.file_operations.FileOperations()
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
     results = renamer.rename_directory(
         nested_image_dir, recursive=True, show_progress=False
@@ -104,18 +104,18 @@ def test_recursive_directory_workflow(
     assert len(renamed_images) > 0
 
 
-def test_dry_run_workflow(sample_image_small: Path, mock_ollama_success: Mock):
+def test_dry_run_workflow(sample_image_small: pathlib.Path, mock_ollama_success: unittest.mock.Mock):
     """Test dry run workflow that doesn't actually rename files."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        temp_path = Path(tmp_dir)
+        temp_path = pathlib.Path(tmp_dir)
         test_image = temp_path / "original_name.jpg"
         test_image.write_bytes(sample_image_small.read_bytes())
 
         mock_ollama_success.generate_filename.return_value = "New descriptive name"
 
         # Create renamer and perform dry run
-        file_ops = FileOperations()
-        renamer = ImageRenamer(mock_ollama_success, file_ops)
+        file_ops = src.image_processor_name.file_operations.FileOperations()
+        renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
         result = renamer.rename_single_image(test_image, dry_run=True)
 
@@ -128,7 +128,7 @@ def test_dry_run_workflow(sample_image_small: Path, mock_ollama_success: Mock):
         assert files[0].name == "original_name.jpg"
 
 
-def test_collision_handling_workflow(temp_dir: Path, mock_ollama_success: Mock):
+def test_collision_handling_workflow(temp_dir: pathlib.Path, mock_ollama_success: unittest.mock.Mock):
     """Test workflow when filename collisions occur."""
     # Create two images that will get the same generated name
     image1 = temp_dir / "image1.jpg"
@@ -144,8 +144,8 @@ def test_collision_handling_workflow(temp_dir: Path, mock_ollama_success: Mock):
     mock_ollama_success.generate_filename.return_value = "Same description"
 
     # Create renamer
-    file_ops = FileOperations()
-    renamer = ImageRenamer(mock_ollama_success, file_ops)
+    file_ops = src.image_processor_name.file_operations.FileOperations()
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
     # Rename first image
     result1 = renamer.rename_single_image(image1)
@@ -164,7 +164,7 @@ def test_collision_handling_workflow(temp_dir: Path, mock_ollama_success: Mock):
     assert len(set(names)) == 2  # All unique
 
 
-def test_mixed_format_workflow(temp_dir: Path, mock_ollama_success: Mock):
+def test_mixed_format_workflow(temp_dir: pathlib.Path, mock_ollama_success: unittest.mock.Mock):
     """Test workflow with mixed image formats."""
     # Create images in different formats
     from PIL import Image
@@ -187,8 +187,8 @@ def test_mixed_format_workflow(temp_dir: Path, mock_ollama_success: Mock):
     mock_ollama_success.generate_filename.side_effect = descriptions
 
     # Process directory
-    file_ops = FileOperations()
-    renamer = ImageRenamer(mock_ollama_success, file_ops)
+    file_ops = src.image_processor_name.file_operations.FileOperations()
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
     results = renamer.rename_directory(temp_dir, show_progress=False)
 
@@ -203,7 +203,7 @@ def test_mixed_format_workflow(temp_dir: Path, mock_ollama_success: Mock):
     assert ".gif" in extensions
 
 
-def test_large_batch_workflow(temp_dir: Path, mock_ollama_success: Mock):
+def test_large_batch_workflow(temp_dir: pathlib.Path, mock_ollama_success: unittest.mock.Mock):
     """Test workflow with larger batch of images."""
     # Create multiple images
     from PIL import Image
@@ -220,8 +220,8 @@ def test_large_batch_workflow(temp_dir: Path, mock_ollama_success: Mock):
     ]
 
     # Process batch
-    file_ops = FileOperations()
-    renamer = ImageRenamer(mock_ollama_success, file_ops)
+    file_ops = src.image_processor_name.file_operations.FileOperations()
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
     results = renamer.rename_directory(temp_dir, show_progress=False)
 
@@ -237,7 +237,7 @@ def test_large_batch_workflow(temp_dir: Path, mock_ollama_success: Mock):
     assert len(renamed_files) == num_images
 
 
-def test_error_recovery_workflow(temp_dir: Path, mock_ollama_success: Mock):
+def test_error_recovery_workflow(temp_dir: pathlib.Path, mock_ollama_success: unittest.mock.Mock):
     """Test workflow error recovery with partial failures."""
     # Create multiple images
     from PIL import Image
@@ -262,8 +262,8 @@ def test_error_recovery_workflow(temp_dir: Path, mock_ollama_success: Mock):
     mock_ollama_success.generate_filename.side_effect = side_effect
 
     # Process with expected failures
-    file_ops = FileOperations()
-    renamer = ImageRenamer(mock_ollama_success, file_ops)
+    file_ops = src.image_processor_name.file_operations.FileOperations()
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
     results = renamer.rename_directory(temp_dir, show_progress=False)
 
@@ -277,7 +277,7 @@ def test_error_recovery_workflow(temp_dir: Path, mock_ollama_success: Mock):
 
 
 @pytest.mark.integration
-def test_configuration_integration_workflow(temp_dir: Path, sample_name_config: dict):
+def test_configuration_integration_workflow(temp_dir: pathlib.Path, sample_name_config: dict):
     """Test workflow with custom configuration."""
     # Create test config file
     config_file = temp_dir / "test_config.yaml"
@@ -299,8 +299,8 @@ def test_configuration_integration_workflow(temp_dir: Path, sample_name_config: 
     img.save(test_image, "JPEG")
 
     # Mock Ollama response
-    with patch("src.image_processor_name.ollama_client.requests.post") as mock_post:
-        mock_response = Mock()
+    with unittest.mock.patch("src.image_processor_name.ollama_client.requests.post") as mock_post:
+        mock_response = unittest.mock.Mock()
         mock_response.raise_for_status.return_value = None
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -336,13 +336,13 @@ def test_configuration_integration_workflow(temp_dir: Path, sample_name_config: 
             return config_values.get(key, default)
 
         with (
-            patch(
-                "src.image_processor_name.config_manager.config"
+            unittest.mock.patch(
+                "image_processor_name.config_manager.config"
             ) as mock_config1,
-            patch("src.image_processor_name.renamer.config") as mock_config2,
-            patch("src.image_processor_name.ollama_client.config") as mock_config3,
-            patch(
-                "src.image_processor_name.file_operations.config"
+            unittest.mock.patch("image_processor_name.config_manager.config") as mock_config2,
+            unittest.mock.patch("image_processor_name.config_manager.config") as mock_config3,
+            unittest.mock.patch(
+                "image_processor_name.config_manager.config"
             ) as mock_config4,
         ):
             # Set up all config mocks with the same side effect
@@ -355,9 +355,9 @@ def test_configuration_integration_workflow(temp_dir: Path, sample_name_config: 
                 mock_config.get.side_effect = config_side_effect
 
             # Create components with test config
-            ollama_client = OllamaClient()
-            file_ops = FileOperations()
-            renamer = ImageRenamer(ollama_client, file_ops)
+            ollama_client = src.image_processor_name.ollama_client.OllamaClient()
+            file_ops = src.image_processor_name.file_operations.FileOperations()
+            renamer = src.image_processor_name.renamer.ImageRenamer(ollama_client, file_ops)
 
             # Process image
             result = renamer.rename_single_image(test_image)
@@ -370,19 +370,19 @@ def test_configuration_integration_workflow(temp_dir: Path, sample_name_config: 
 
 
 def test_progress_reporting_workflow(
-    temp_image_dir: Path, mock_ollama_success: Mock, capsys
+    temp_image_dir: pathlib.Path, mock_ollama_success: unittest.mock.Mock, capsys
 ):
     """Test that progress reporting works in workflows."""
     mock_ollama_success.generate_filename.return_value = "Progress test image"
 
     # Enable progress bar in config
-    with patch("src.image_processor_name.config_manager.config") as mock_config:
+    with unittest.mock.patch("image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "processing.progress_bar": True
         }.get(key, default)
 
-        file_ops = FileOperations()
-        renamer = ImageRenamer(mock_ollama_success, file_ops)
+        file_ops = src.image_processor_name.file_operations.FileOperations()
+        renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, file_ops)
 
         # Process directory with progress enabled
         results = renamer.rename_directory(temp_image_dir, show_progress=True)

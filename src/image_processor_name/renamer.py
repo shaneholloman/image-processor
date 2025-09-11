@@ -2,18 +2,18 @@
 Core image renaming functionality with AI-powered filename generation.
 """
 
+import pathlib
 import re
 import time
-from pathlib import Path
 
-from tqdm import tqdm
+import tqdm
 
-from .config_manager import config
-from .file_operations import FileOperations
-from .log_manager import get_logger
-from .ollama_client import OllamaClient
+import image_processor_name.config_manager
+import image_processor_name.file_operations
+import image_processor_name.log_manager
+import image_processor_name.ollama_client
 
-logger = get_logger(__name__)
+logger = image_processor_name.log_manager.get_logger(__name__)
 
 
 class ImageRenameError(Exception):
@@ -25,8 +25,8 @@ class ImageRenamer:
 
     def __init__(
         self,
-        ollama_client: OllamaClient | None = None,
-        file_operations: FileOperations | None = None,
+        ollama_client_arg: image_processor_name.ollama_client.OllamaClient | None = None,
+        file_operations_arg: image_processor_name.file_operations.FileOperations | None = None,
     ) -> None:
         """
         Initialize image renamer.
@@ -35,15 +35,15 @@ class ImageRenamer:
             ollama_client: Ollama API client instance
             file_operations: File operations handler instance
         """
-        self.ollama_client = ollama_client or OllamaClient()
-        self.file_ops = file_operations or FileOperations()
+        self.ollama_client = ollama_client_arg or image_processor_name.ollama_client.OllamaClient()
+        self.file_ops = file_operations_arg or image_processor_name.file_operations.FileOperations()
 
         # Load filename configuration
-        self.pattern_cleanup = config.get("filename.pattern_cleanup", True)
-        self.max_length = config.get("filename.max_length", 100)
-        self.remove_punctuation = config.get("filename.remove_punctuation", True)
-        self.replace_spaces_with = config.get("filename.replace_spaces_with", "-")
-        self.case_conversion = config.get("filename.case_conversion", "lower")
+        self.pattern_cleanup = image_processor_name.config_manager.config.get("filename.pattern_cleanup", True)
+        self.max_length = image_processor_name.config_manager.config.get("filename.max_length", 100)
+        self.remove_punctuation = image_processor_name.config_manager.config.get("filename.remove_punctuation", True)
+        self.replace_spaces_with = image_processor_name.config_manager.config.get("filename.replace_spaces_with", "-")
+        self.case_conversion = image_processor_name.config_manager.config.get("filename.case_conversion", "lower")
 
         logger.info("Image renamer initialized")
 
@@ -108,7 +108,7 @@ class ImageRenamer:
         return f"{filename}{original_extension}"
 
     def generate_filename(
-        self, image_path: Path, prompt: str | None = None
+        self, image_path: pathlib.Path, prompt: str | None = None
     ) -> str | None:
         """
         Generate a new filename for an image using AI description.
@@ -122,7 +122,7 @@ class ImageRenamer:
         """
         try:
             # Verify image first
-            if config.get("images.verify_before_processing", True):
+            if image_processor_name.config_manager.config.get("images.verify_before_processing", True):
                 self.file_ops.verify_image(image_path)
 
             # Generate description
@@ -138,7 +138,7 @@ class ImageRenamer:
             logger.error(f"Failed to generate filename for {image_path.name}: {e}")
             return None
 
-    def rename_single_image(self, image_path: Path, dry_run: bool = False) -> bool:
+    def rename_single_image(self, image_path: pathlib.Path, dry_run: bool = False) -> bool:
         """
         Rename a single image file.
 
@@ -195,7 +195,7 @@ class ImageRenamer:
 
     def rename_directory(
         self,
-        directory: Path,
+        directory: pathlib.Path,
         recursive: bool = False,
         dry_run: bool = False,
         show_progress: bool = True,
@@ -244,9 +244,9 @@ class ImageRenamer:
 
             # Set up progress bar
             progress_bar = None
-            if show_progress and config.get("processing.progress_bar", True):
+            if show_progress and image_processor_name.config_manager.config.get("processing.progress_bar", True):
                 action = "Analyzing" if dry_run else "Renaming"
-                progress_bar = tqdm(
+                progress_bar = tqdm.tqdm(
                     image_files, desc=f"{action} images", unit="img", colour="green"
                 )
                 iterator = progress_bar

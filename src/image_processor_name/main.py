@@ -3,28 +3,28 @@ Main entry point for image processor name tool CLI.
 """
 
 import argparse
+import pathlib
 import sys
-from pathlib import Path
 
-from .config_manager import ConfigError, config
-from .file_operations import FileOperations
-from .log_manager import get_logger, setup_logger
-from .ollama_client import OllamaClient, OllamaConnectionError
-from .renamer import ImageRenamer
+import image_processor_name.config_manager
+import image_processor_name.file_operations
+import image_processor_name.log_manager
+import image_processor_name.ollama_client
+import image_processor_name.renamer
 
 
 def setup_logging() -> None:
     """Set up application logging."""
-    log_level = config.get("logging.level", "INFO")
-    log_file = config.get("logging.file", "image_renamer.log")
-    use_colors = config.get("logging.console_colors", True)
+    log_level = image_processor_name.config_manager.config.get("logging.level", "INFO")
+    log_file = image_processor_name.config_manager.config.get("logging.file", "image_renamer.log")
+    use_colors = image_processor_name.config_manager.config.get("logging.console_colors", True)
 
-    setup_logger(
+    image_processor_name.log_manager.setup_logger(
         name="image_processor_name",
         log_file=log_file,
         level=getattr(__import__("logging"), log_level.upper()),
-        max_bytes=config.get("logging.max_file_size_mb", 10) * 1024 * 1024,
-        backup_count=config.get("logging.backup_count", 5),
+        max_bytes=image_processor_name.config_manager.config.get("logging.max_file_size_mb", 10) * 1024 * 1024,
+        backup_count=image_processor_name.config_manager.config.get("logging.backup_count", 5),
         use_colors=use_colors,
     )
 
@@ -113,19 +113,19 @@ def handle_rename_command(args: argparse.Namespace) -> int:
     Returns:
         Exit code
     """
-    logger = get_logger(__name__)
+    logger = image_processor_name.log_manager.get_logger(__name__)
 
     try:
-        target_path = Path(args.path).resolve()
+        target_path = pathlib.Path(args.path).resolve()
 
         if not target_path.exists():
             print(f"Error: Path does not exist: {target_path}")
             return 1
 
         # Initialize components
-        ollama_client = OllamaClient()
-        file_ops = FileOperations()
-        renamer = ImageRenamer(ollama_client, file_ops)
+        ollama_client = image_processor_name.ollama_client.OllamaClient()
+        file_ops = image_processor_name.file_operations.FileOperations()
+        renamer = image_processor_name.renamer.ImageRenamer(ollama_client, file_ops)
 
         # Test connection first
         if not args.dry_run and not renamer.test_connection():
@@ -197,7 +197,7 @@ def main() -> int:
 
         # Set up logging
         setup_logging()
-        logger = get_logger(__name__)
+        logger = image_processor_name.log_manager.get_logger(__name__)
 
         # Set verbose logging if requested
         if args.verbose:
@@ -206,12 +206,12 @@ def main() -> int:
 
         # Handle global options that don't need full setup
         if args.check_connection:
-            ollama_client = OllamaClient()
+            ollama_client = image_processor_name.ollama_client.OllamaClient()
             return 0 if ollama_client.check_connection_with_diagnostics() else 1
 
         if args.list_models:
             try:
-                ollama_client = OllamaClient()
+                ollama_client = image_processor_name.ollama_client.OllamaClient()
                 models = ollama_client.list_models()
                 print("Available Ollama models:")
                 for model in models.get("models", []):
@@ -229,12 +229,12 @@ def main() -> int:
         parser.print_help()
         return 1
 
-    except ConfigError as e:
+    except image_processor_name.config_manager.ConfigError as e:
         print(f"Configuration error: {e}")
         print("Check your configuration file and try again.")
         return 1
 
-    except OllamaConnectionError as e:
+    except image_processor_name.ollama_client.OllamaConnectionError as e:
         print(f"Ollama connection error: {e}")
         print("Run with --check-connection to diagnose connection issues.")
         return 1
@@ -244,7 +244,7 @@ def main() -> int:
         return 130
 
     except Exception as e:
-        logger = get_logger(__name__)
+        logger = image_processor_name.log_manager.get_logger(__name__)
         logger.exception("Unexpected error occurred")
         print(f"Unexpected error: {e}")
         return 1

@@ -2,16 +2,16 @@
 Unit tests for ImageRenamer class.
 """
 
-from pathlib import Path
-from unittest.mock import Mock, patch
+import pathlib
+import unittest.mock
 
 import pytest
-from src.image_processor_name.renamer import ImageRenamer
+import src.image_processor_name.renamer
 
 
 def test_init_with_defaults():
     """Test ImageRenamer initialization with default dependencies."""
-    renamer = ImageRenamer()
+    renamer = src.image_processor_name.renamer.ImageRenamer()
 
     assert renamer.ollama_client is not None
     assert renamer.file_ops is not None
@@ -23,10 +23,10 @@ def test_init_with_defaults():
 
 
 def test_init_with_custom_dependencies(
-    mock_ollama_success: Mock, mock_file_operations: Mock
+    mock_ollama_success: unittest.mock.Mock, mock_file_operations: unittest.mock.Mock
 ):
     """Test ImageRenamer initialization with custom dependencies."""
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
 
     assert renamer.ollama_client == mock_ollama_success
     assert renamer.file_ops == mock_file_operations
@@ -46,7 +46,7 @@ def test_init_with_custom_dependencies(
 )
 def test_sanitize_filename(description: str, extension: str, expected: str):
     """Test filename sanitization with various inputs."""
-    with patch("src.image_processor_name.config_manager.config") as mock_config:
+    with unittest.mock.patch("image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "filename.pattern_cleanup": True,
             "filename.max_length": 100,
@@ -55,7 +55,7 @@ def test_sanitize_filename(description: str, extension: str, expected: str):
             "filename.case_conversion": "lower",
         }.get(key, default)
 
-        renamer = ImageRenamer()
+        renamer = src.image_processor_name.renamer.ImageRenamer()
         result = renamer.sanitize_filename(description, extension)
 
         if description == "a" * 150:
@@ -68,7 +68,7 @@ def test_sanitize_filename(description: str, extension: str, expected: str):
 
 def test_sanitize_filename_no_cleanup():
     """Test filename sanitization with pattern cleanup disabled."""
-    with patch("src.image_processor_name.renamer.config") as mock_config:
+    with unittest.mock.patch("image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "filename.pattern_cleanup": False,
             "filename.max_length": 100,
@@ -77,7 +77,7 @@ def test_sanitize_filename_no_cleanup():
             "filename.case_conversion": "lower",
         }.get(key, default)
 
-        renamer = ImageRenamer()
+        renamer = src.image_processor_name.renamer.ImageRenamer()
         result = renamer.sanitize_filename("Hello! World?", ".jpg")
 
         # With pattern cleanup disabled, spaces should be preserved
@@ -95,7 +95,7 @@ def test_sanitize_filename_different_case_conversions():
     ]
 
     for case_type, expected in test_cases:
-        with patch("src.image_processor_name.renamer.config") as mock_config:
+        with unittest.mock.patch("image_processor_name.config_manager.config") as mock_config:
 
             def side_effect(key, default, current_case_type=case_type):
                 return {
@@ -108,21 +108,21 @@ def test_sanitize_filename_different_case_conversions():
 
             mock_config.get.side_effect = side_effect
 
-            renamer = ImageRenamer()
+            renamer = src.image_processor_name.renamer.ImageRenamer()
             result = renamer.sanitize_filename("Hello World", ".jpg")
 
             assert result == expected
 
 
 def test_generate_filename_success(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test successful filename generation."""
     mock_ollama_success.generate_filename.return_value = "beautiful sunset scene"
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     result = renamer.generate_filename(sample_image_small)
 
     assert result == "beautiful-sunset-scene.jpg"
@@ -132,15 +132,15 @@ def test_generate_filename_success(
 
 
 def test_generate_filename_with_custom_prompt(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test filename generation with custom prompt."""
     mock_ollama_success.generate_filename.return_value = "artistic description"
     custom_prompt = "Describe artistically"
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     result = renamer.generate_filename(sample_image_small, custom_prompt)
 
     assert result == "artistic-description.jpg"
@@ -150,30 +150,37 @@ def test_generate_filename_with_custom_prompt(
 
 
 def test_generate_filename_api_error(
-    mock_ollama_error: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_error: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test filename generation when API fails."""
-    renamer = ImageRenamer(mock_ollama_error, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_error, mock_file_operations)
     result = renamer.generate_filename(sample_image_small)
 
     assert result is None
 
 
 def test_generate_filename_verification_enabled(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test filename generation with image verification enabled."""
-    with patch("src.image_processor_name.config_manager.config") as mock_config:
-        mock_config.get.return_value = True  # verify_before_processing = True
+    with unittest.mock.patch("image_processor_name.config_manager.config") as mock_config:
+        mock_config.get.side_effect = lambda key, default: {
+            "images.verify_before_processing": True,
+            "filename.pattern_cleanup": True,
+            "filename.max_length": 100,
+            "filename.remove_punctuation": True,
+            "filename.replace_spaces_with": "-",
+            "filename.case_conversion": "lower",
+        }.get(key, default)
 
         mock_ollama_success.generate_filename.return_value = "verified image"
         mock_file_operations.verify_image.return_value = None
 
-        renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+        renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
         result = renamer.generate_filename(sample_image_small)
 
         assert result == "verified-image.jpg"
@@ -181,16 +188,16 @@ def test_generate_filename_verification_enabled(
 
 
 def test_rename_single_image_success(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test successful single image rename."""
     mock_ollama_success.generate_filename.return_value = "new filename"
     mock_file_operations.is_supported_image.return_value = True
     mock_file_operations.safe_file_move.return_value = True
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     result = renamer.rename_single_image(sample_image_small)
 
     assert result is True
@@ -198,15 +205,15 @@ def test_rename_single_image_success(
 
 
 def test_rename_single_image_dry_run(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test single image rename in dry run mode."""
     mock_ollama_success.generate_filename.return_value = "new filename"
     mock_file_operations.is_supported_image.return_value = True
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     result = renamer.rename_single_image(sample_image_small, dry_run=True)
 
     assert result is True
@@ -214,14 +221,14 @@ def test_rename_single_image_dry_run(
 
 
 def test_rename_single_image_unsupported_format(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test rename attempt on unsupported image format."""
     mock_file_operations.is_supported_image.return_value = False
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     result = renamer.rename_single_image(sample_image_small)
 
     assert result is False
@@ -229,21 +236,21 @@ def test_rename_single_image_unsupported_format(
 
 
 def test_rename_single_image_file_not_found(
-    mock_ollama_success: Mock, mock_file_operations: Mock
+    mock_ollama_success: unittest.mock.Mock, mock_file_operations: unittest.mock.Mock
 ):
     """Test rename attempt on non-existent file."""
-    non_existent_path = Path("/does/not/exist.jpg")
+    non_existent_path = pathlib.Path("/does/not/exist.jpg")
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     result = renamer.rename_single_image(non_existent_path)
 
     assert result is False
 
 
 def test_rename_single_image_same_name(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test rename when new filename is same as current."""
     # Mock a generated description that will result in the exact same filename
@@ -251,10 +258,10 @@ def test_rename_single_image_same_name(
     mock_ollama_success.generate_filename.return_value = sample_image_small.stem
     mock_file_operations.is_supported_image.return_value = True
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
 
     # Mock generate_filename to return the exact filename to avoid move
-    with patch.object(renamer, "generate_filename") as mock_gen:
+    with unittest.mock.patch.object(renamer, "generate_filename") as mock_gen:
         mock_gen.return_value = sample_image_small.name  # Same filename as current
         result = renamer.rename_single_image(sample_image_small)
 
@@ -264,9 +271,9 @@ def test_rename_single_image_same_name(
 
 
 def test_rename_single_image_filename_collision(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    sample_image_small: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    sample_image_small: pathlib.Path,
 ):
     """Test rename when target filename already exists."""
     mock_ollama_success.generate_filename.return_value = "new filename"
@@ -277,7 +284,7 @@ def test_rename_single_image_filename_collision(
     collision_path = sample_image_small.parent / "new-filename-1.jpg"
     mock_file_operations.get_unique_filename.return_value = collision_path
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
 
     # Create a file that would cause collision
     collision_file = sample_image_small.parent / "new-filename.jpg"
@@ -291,16 +298,16 @@ def test_rename_single_image_filename_collision(
 
 
 def test_rename_directory_success(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    temp_image_dir: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    temp_image_dir: pathlib.Path,
 ):
     """Test successful directory rename operation."""
     mock_ollama_success.generate_filename.return_value = "renamed image"
     mock_file_operations.is_supported_image.return_value = True
     mock_file_operations.safe_file_move.return_value = True
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     results = renamer.rename_directory(temp_image_dir, show_progress=False)
 
     assert results["total_files"] > 0
@@ -310,16 +317,16 @@ def test_rename_directory_success(
 
 
 def test_rename_directory_recursive(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    nested_image_dir: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    nested_image_dir: pathlib.Path,
 ):
     """Test recursive directory rename operation."""
     mock_ollama_success.generate_filename.return_value = "renamed image"
     mock_file_operations.is_supported_image.return_value = True
     mock_file_operations.safe_file_move.return_value = True
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     results = renamer.rename_directory(
         nested_image_dir, recursive=True, show_progress=False
     )
@@ -330,15 +337,15 @@ def test_rename_directory_recursive(
 
 
 def test_rename_directory_dry_run(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    temp_image_dir: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    temp_image_dir: pathlib.Path,
 ):
     """Test directory rename in dry run mode."""
     mock_ollama_success.generate_filename.return_value = "renamed image"
     mock_file_operations.is_supported_image.return_value = True
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     results = renamer.rename_directory(
         temp_image_dir, dry_run=True, show_progress=False
     )
@@ -349,13 +356,13 @@ def test_rename_directory_dry_run(
 
 
 def test_rename_directory_no_images(
-    mock_ollama_success: Mock, mock_file_operations: Mock, temp_dir: Path
+    mock_ollama_success: unittest.mock.Mock, mock_file_operations: unittest.mock.Mock, temp_dir: pathlib.Path
 ):
     """Test directory rename with no image files."""
     empty_dir = temp_dir / "empty"
     empty_dir.mkdir()
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     results = renamer.rename_directory(empty_dir, show_progress=False)
 
     assert results["total_files"] == 0
@@ -364,9 +371,9 @@ def test_rename_directory_no_images(
 
 
 def test_rename_directory_with_failures(
-    mock_ollama_success: Mock,
-    mock_file_operations: Mock,
-    temp_image_dir: Path,
+    mock_ollama_success: unittest.mock.Mock,
+    mock_file_operations: unittest.mock.Mock,
+    temp_image_dir: pathlib.Path,
 ):
     """Test directory rename with some failures."""
     # Make every other call fail
@@ -381,24 +388,24 @@ def test_rename_directory_with_failures(
     mock_file_operations.is_supported_image.return_value = True
     mock_file_operations.safe_file_move.side_effect = side_effect
 
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     results = renamer.rename_directory(temp_image_dir, show_progress=False)
 
     assert results["failed"] > 0
 
 
-def test_test_connection(mock_ollama_success: Mock, mock_file_operations: Mock):
+def test_test_connection(mock_ollama_success: unittest.mock.Mock, mock_file_operations: unittest.mock.Mock):
     """Test connection testing method."""
-    renamer = ImageRenamer(mock_ollama_success, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_success, mock_file_operations)
     result = renamer.test_connection()
 
     assert result is True
     mock_ollama_success.test_connection.assert_called_once()
 
 
-def test_test_connection_failure(mock_ollama_error: Mock, mock_file_operations: Mock):
+def test_test_connection_failure(mock_ollama_error: unittest.mock.Mock, mock_file_operations: unittest.mock.Mock):
     """Test connection testing when connection fails."""
-    renamer = ImageRenamer(mock_ollama_error, mock_file_operations)
+    renamer = src.image_processor_name.renamer.ImageRenamer(mock_ollama_error, mock_file_operations)
     result = renamer.test_connection()
 
     assert result is False

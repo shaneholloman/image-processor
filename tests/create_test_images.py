@@ -6,15 +6,15 @@ This script generates various test images in different formats, sizes, and condi
 to support comprehensive testing of the image processing functionality.
 """
 
-from pathlib import Path
+import pathlib
 
-from PIL import Image
+import PIL.Image
 
 
 def create_test_images():
     """Create all test image fixtures."""
     # Create test images directory
-    fixtures_dir = Path(__file__).parent / "fixtures" / "sample_images"
+    fixtures_dir = pathlib.Path(__file__).parent / "fixtures" / "sample_images"
     fixtures_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Creating test images in: {fixtures_dir}")
@@ -46,7 +46,7 @@ def create_test_images():
                 # Create a gradient image for more complex testing
                 img = create_gradient_image(size)
             else:
-                img = Image.new("RGB", size, color)
+                img = PIL.Image.new("RGB", size, color)
 
             # Save with appropriate format options
             if format == "GIF":
@@ -74,7 +74,7 @@ def create_test_images():
 def create_gradient_image(size):
     """Create a gradient image for more complex visual testing."""
     width, height = size
-    img = Image.new("RGB", size)
+    img = PIL.Image.new("RGB", size)
     pixels = img.load()
 
     if pixels is not None:
@@ -140,7 +140,7 @@ def create_edge_case_files(fixtures_dir):
     for problematic_name in problematic_names:
         try:
             problem_path = fixtures_dir / problematic_name
-            img = Image.new("RGB", (30, 30), "gray")
+            img = PIL.Image.new("RGB", (30, 30), "gray")
 
             # Determine format from extension
             ext = problematic_name.lower().split(".")[-1]
@@ -182,7 +182,7 @@ def create_nested_directory_structure(fixtures_dir):
         try:
             image_path = subdir / f"nested_image_{i}.jpg"
             color = ["red", "green", "blue", "yellow"][i % 4]
-            img = Image.new("RGB", (40, 40), color)
+            img = PIL.Image.new("RGB", (40, 40), color)
             img.save(image_path, "JPEG")
             print(
                 f"✓ Created {image_path.relative_to(fixtures_dir)} - nested structure testing"
@@ -196,7 +196,7 @@ def create_nested_directory_structure(fixtures_dir):
 
 def clean_test_images():
     """Remove all test image fixtures."""
-    fixtures_dir = Path(__file__).parent / "fixtures" / "sample_images"
+    fixtures_dir = pathlib.Path(__file__).parent / "fixtures" / "sample_images"
 
     if not fixtures_dir.exists():
         print("No test images directory found to clean.")
@@ -234,7 +234,7 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--with-nested":
         print("Creating test images with nested directory structure...")
         create_test_images()
-        fixtures_dir = Path(__file__).parent / "fixtures" / "sample_images"
+        fixtures_dir = pathlib.Path(__file__).parent / "fixtures" / "sample_images"
         create_nested_directory_structure(fixtures_dir)
         return
 

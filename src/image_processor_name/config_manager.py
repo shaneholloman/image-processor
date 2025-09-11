@@ -3,13 +3,13 @@ Configuration management for image processor name tool.
 """
 
 import os
-from pathlib import Path
-from typing import Any
+import pathlib
+import typing
 
+import dotenv
 import yaml
-from dotenv import load_dotenv
 
-from . import CONFIG_DIR
+import image_processor_name
 
 
 class ConfigError(Exception):
@@ -27,16 +27,16 @@ class ConfigManager:
         Args:
             config_file: Name of the configuration file in the config directory
         """
-        self.config_file = CONFIG_DIR / config_file
-        self._config: dict[str, Any] = {}
+        self.config_file = image_processor_name.CONFIG_DIR / config_file
+        self._config: dict[str, typing.Any] = {}
         self._load_environment()
         self._load_config()
 
     def _load_environment(self) -> None:
         """Load environment variables from .env file if it exists."""
-        env_file = Path(".env")
+        env_file = pathlib.Path(".env")
         if env_file.exists():
-            load_dotenv(env_file)
+            dotenv.load_dotenv(env_file)
 
     def _load_config(self) -> None:
         """Load configuration from YAML file."""
@@ -51,7 +51,7 @@ class ConfigManager:
         except Exception as e:
             raise ConfigError(f"Failed to load config file: {e}") from e
 
-    def get(self, key: str, default: Any | None = None) -> Any:
+    def get(self, key: str, default: typing.Any | None = None) -> typing.Any:
         """
         Get configuration value by key with optional default.
 
@@ -82,7 +82,7 @@ class ConfigManager:
         except (KeyError, TypeError):
             return default
 
-    def _parse_env_value(self, value: str) -> Any:
+    def _parse_env_value(self, value: str) -> typing.Any:
         """
         Parse environment variable value to appropriate type.
 
@@ -111,7 +111,7 @@ class ConfigManager:
         # Return as string
         return value
 
-    def require(self, key: str) -> Any:
+    def require(self, key: str) -> typing.Any:
         """
         Get required configuration value, raise error if not found.
 

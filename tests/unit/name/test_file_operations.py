@@ -2,20 +2,16 @@
 Unit tests for FileOperations class.
 """
 
-from pathlib import Path
-from unittest.mock import patch
+import pathlib
+import unittest.mock
 
 import pytest
-from src.image_processor_name.file_operations import (
-    FileOperationError,
-    FileOperations,
-    ImageCorrupted,
-)
+import src.image_processor_name.file_operations
 
 
 def test_init_with_defaults():
     """Test FileOperations initialization with default configuration."""
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
 
     assert file_ops.max_retries == 3
     assert file_ops.move_delay == 0.5
@@ -41,16 +37,16 @@ def test_init_with_defaults():
 )
 def test_is_supported_image(extension: str, expected: bool):
     """Test image format support detection."""
-    file_ops = FileOperations()
-    test_path = Path(f"test_file{extension}")
+    file_ops = src.image_processor_name.file_operations.FileOperations()
+    test_path = pathlib.Path(f"test_file{extension}")
 
     result = file_ops.is_supported_image(test_path)
     assert result == expected
 
 
-def test_verify_image_valid(sample_image_small: Path):
+def test_verify_image_valid(sample_image_small: pathlib.Path):
     """Test image verification with valid image."""
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
 
     # Should not raise any exception
     file_ops.verify_image(sample_image_small)
@@ -58,38 +54,38 @@ def test_verify_image_valid(sample_image_small: Path):
 
 def test_verify_image_not_found():
     """Test image verification with non-existent file."""
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
 
-    with pytest.raises(FileOperationError, match="Image file not found"):
-        file_ops.verify_image(Path("/does/not/exist.jpg"))
+    with pytest.raises(src.image_processor_name.file_operations.FileOperationError, match="Image file not found"):
+        file_ops.verify_image(pathlib.Path("/does/not/exist.jpg"))
 
 
-def test_verify_image_corrupted(corrupted_image: Path):
+def test_verify_image_corrupted(corrupted_image: pathlib.Path):
     """Test image verification with corrupted file."""
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
 
-    with pytest.raises(ImageCorrupted, match="Image verification failed"):
+    with pytest.raises(src.image_processor_name.file_operations.ImageCorrupted, match="Image verification failed"):
         file_ops.verify_image(corrupted_image)
 
 
-def test_verify_image_too_large(temp_dir: Path):
+def test_verify_image_too_large(temp_dir: pathlib.Path):
     """Test image verification with oversized file."""
     # Create a file that exceeds the maximum size
     large_file = temp_dir / "huge.jpg"
     # Write more than 50MB of data (default limit)
     large_file.write_bytes(b"x" * (51 * 1024 * 1024))
 
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
 
-    with pytest.raises(FileOperationError, match="Image file too large"):
+    with pytest.raises(src.image_processor_name.file_operations.FileOperationError, match="Image file too large"):
         file_ops.verify_image(large_file)
 
 
-def test_safe_file_move_success(sample_image_small: Path, temp_dir: Path):
+def test_safe_file_move_success(sample_image_small: pathlib.Path, temp_dir: pathlib.Path):
     """Test successful file move operation."""
     dest_path = temp_dir / "moved_image.jpg"
 
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
     result = file_ops.safe_file_move(sample_image_small, dest_path)
 
     assert result is True
@@ -98,32 +94,32 @@ def test_safe_file_move_success(sample_image_small: Path, temp_dir: Path):
 
 
 def test_safe_file_move_destination_exists_no_overwrite(
-    sample_image_small: Path, sample_image_png: Path
+    sample_image_small: pathlib.Path, sample_image_png: pathlib.Path
 ):
     """Test file move when destination exists and confirm_overwrites is True."""
     # Convert PNG to JPG path to simulate collision
     dest_path = sample_image_png.with_suffix(".jpg")
     dest_path.write_bytes(b"existing content")
 
-    with patch("src.image_processor_name.config_manager.config") as mock_config:
+    with unittest.mock.patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "file_operations.confirm_overwrites": True
         }.get(key, default)
 
-        file_ops = FileOperations()
+        file_ops = src.image_processor_name.file_operations.FileOperations()
 
         # Should raise exception when destination exists and confirm_overwrites is True
-        with pytest.raises(FileOperationError, match="Destination file already exists"):
+        with pytest.raises(src.image_processor_name.file_operations.FileOperationError, match="Destination file already exists"):
             file_ops.safe_file_move(sample_image_small, dest_path)
 
         assert sample_image_small.exists()  # Source should still exist
 
 
-def test_safe_file_move_with_retries(sample_image_small: Path, temp_dir: Path):
+def test_safe_file_move_with_retries(sample_image_small: pathlib.Path, temp_dir: pathlib.Path):
     """Test file move with retry mechanism."""
     dest_path = temp_dir / "moved_with_retries.jpg"
 
-    with patch("shutil.copy2") as mock_copy:
+    with unittest.mock.patch("shutil.copy2") as mock_copy:
         # Fail first two attempts, succeed on third
         mock_copy.side_effect = [
             OSError("Permission denied"),
@@ -131,9 +127,9 @@ def test_safe_file_move_with_retries(sample_image_small: Path, temp_dir: Path):
             None,
         ]
 
-        file_ops = FileOperations()
+        file_ops = src.image_processor_name.file_operations.FileOperations()
 
-        with patch("time.sleep") as mock_sleep:
+        with unittest.mock.patch("time.sleep") as mock_sleep:
             result = file_ops.safe_file_move(sample_image_small, dest_path)
 
             assert result is True
@@ -141,29 +137,29 @@ def test_safe_file_move_with_retries(sample_image_small: Path, temp_dir: Path):
             assert mock_sleep.call_count >= 2  # Sleep between retries
 
 
-def test_safe_file_move_max_retries_exceeded(sample_image_small: Path, temp_dir: Path):
+def test_safe_file_move_max_retries_exceeded(sample_image_small: pathlib.Path, temp_dir: pathlib.Path):
     """Test file move when max retries are exceeded."""
     dest_path = temp_dir / "failed_move.jpg"
 
-    with patch("shutil.copy2") as mock_copy:
+    with unittest.mock.patch("shutil.copy2") as mock_copy:
         mock_copy.side_effect = OSError("Persistent error")
 
-        file_ops = FileOperations()
+        file_ops = src.image_processor_name.file_operations.FileOperations()
 
-        with pytest.raises(FileOperationError, match="File move failed after"):
+        with pytest.raises(src.image_processor_name.file_operations.FileOperationError, match="File move failed after"):
             file_ops.safe_file_move(sample_image_small, dest_path)
 
         assert mock_copy.call_count == 3  # Default retry count
 
 
-def test_safe_file_move_with_backup(sample_image_small: Path, temp_dir: Path):
+def test_safe_file_move_with_backup(sample_image_small: pathlib.Path, temp_dir: pathlib.Path):
     """Test file move with backup creation."""
     dest_path = temp_dir / "move_with_backup.jpg"
 
     # Don't create an existing destination file for this test
     # The backup creation is for the source file, not destination
 
-    with patch("src.image_processor_name.config_manager.config") as mock_config:
+    with unittest.mock.patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "images.supported_extensions": [
                 ".png",
@@ -179,7 +175,7 @@ def test_safe_file_move_with_backup(sample_image_small: Path, temp_dir: Path):
             "file_operations.confirm_overwrites": False,
         }.get(key, default)
 
-        file_ops = FileOperations()
+        file_ops = src.image_processor_name.file_operations.FileOperations()
         result = file_ops.safe_file_move(sample_image_small, dest_path)
 
         assert result is True
@@ -187,22 +183,22 @@ def test_safe_file_move_with_backup(sample_image_small: Path, temp_dir: Path):
         assert not sample_image_small.exists()  # Source should be moved
 
 
-def test_get_unique_filename_no_collision(temp_dir: Path):
+def test_get_unique_filename_no_collision(temp_dir: pathlib.Path):
     """Test unique filename generation when no collision exists."""
     target_path = temp_dir / "unique_file.jpg"
 
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
     result = file_ops.get_unique_filename(target_path)
 
     assert result == target_path
 
 
-def test_get_unique_filename_with_collision(temp_dir: Path):
+def test_get_unique_filename_with_collision(temp_dir: pathlib.Path):
     """Test unique filename generation when collision exists."""
     target_path = temp_dir / "colliding_file.jpg"
     target_path.write_bytes(b"existing content")  # Create collision
 
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
     result = file_ops.get_unique_filename(target_path)
 
     assert result != target_path
@@ -214,7 +210,7 @@ def test_get_unique_filename_with_collision(temp_dir: Path):
     assert "_1" in result.stem or "-1" in result.stem
 
 
-def test_get_unique_filename_multiple_collisions(temp_dir: Path):
+def test_get_unique_filename_multiple_collisions(temp_dir: pathlib.Path):
     """Test unique filename generation with multiple collisions."""
     base_path = temp_dir / "multi_collision.jpg"
 
@@ -226,7 +222,7 @@ def test_get_unique_filename_multiple_collisions(temp_dir: Path):
             collision_path = base_path.with_stem(f"{base_path.stem}_{i}")
         collision_path.write_bytes(b"existing content")
 
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
     result = file_ops.get_unique_filename(base_path)
 
     assert not result.exists()
@@ -243,13 +239,13 @@ def test_get_unique_filename_multiple_collisions(temp_dir: Path):
     ],
 )
 def test_check_file_size_limits(
-    temp_dir: Path, file_size_mb: int, max_size_mb: int, should_pass: bool
+    temp_dir: pathlib.Path, file_size_mb: int, max_size_mb: int, should_pass: bool
 ):
     """Test file size validation with different limits."""
     test_file = temp_dir / "size_test.jpg"
     test_file.write_bytes(b"x" * (file_size_mb * 1024 * 1024))
 
-    with patch("src.image_processor_name.config_manager.config") as mock_config:
+    with unittest.mock.patch("src.image_processor_name.config_manager.config") as mock_config:
         mock_config.get.side_effect = lambda key, default: {
             "images.supported_extensions": [
                 ".png",
@@ -265,29 +261,29 @@ def test_check_file_size_limits(
             "file_operations.confirm_overwrites": True,
         }.get(key, default)
 
-        file_ops = FileOperations()
+        file_ops = src.image_processor_name.file_operations.FileOperations()
 
         if should_pass:
             if file_size_mb > max_size_mb:
                 # File too large
-                with pytest.raises(FileOperationError, match="Image file too large"):
+                with pytest.raises(src.image_processor_name.file_operations.FileOperationError, match="Image file too large"):
                     file_ops.verify_image(test_file)
             else:
                 # Will fail because it's not a real image, but should pass size check
-                with pytest.raises(ImageCorrupted, match="Image verification failed"):
+                with pytest.raises(src.image_processor_name.file_operations.ImageCorrupted, match="Image verification failed"):
                     file_ops.verify_image(test_file)
         else:
-            with pytest.raises(FileOperationError, match="Image file too large"):
+            with pytest.raises(src.image_processor_name.file_operations.FileOperationError, match="Image file too large"):
                 file_ops.verify_image(test_file)
 
 
-def test_file_operations_with_symlinks(sample_image_small: Path, temp_dir: Path):
+def test_file_operations_with_symlinks(sample_image_small: pathlib.Path, temp_dir: pathlib.Path):
     """Test file operations with symbolic links."""
     # Create a symlink to the sample image
     symlink_path = temp_dir / "image_symlink.jpg"
     symlink_path.symlink_to(sample_image_small)
 
-    file_ops = FileOperations()
+    file_ops = src.image_processor_name.file_operations.FileOperations()
 
     # Should recognize as supported image
     assert file_ops.is_supported_image(symlink_path)

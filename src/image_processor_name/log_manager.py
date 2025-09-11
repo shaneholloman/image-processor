@@ -3,13 +3,13 @@ Centralized logging management for image processor name tool.
 """
 
 import logging
-from logging.handlers import RotatingFileHandler
-from pathlib import Path
+import logging.handlers
+import pathlib
 
-from colorama import Back, Fore, Style, init
+import colorama
 
 # Initialize colorama
-init(autoreset=True)
+colorama.init(autoreset=True)
 
 
 class ColoredFormatter(logging.Formatter):
@@ -22,14 +22,14 @@ class ColoredFormatter(logging.Formatter):
 
     FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     FORMATS = {
-        logging.DEBUG: str(Fore.CYAN) + FORMAT + str(Style.RESET_ALL),
-        logging.INFO: str(Fore.GREEN) + FORMAT + str(Style.RESET_ALL),
-        logging.WARNING: str(Fore.YELLOW) + FORMAT + str(Style.RESET_ALL),
-        logging.ERROR: str(Fore.RED) + FORMAT + str(Style.RESET_ALL),
-        logging.CRITICAL: str(Back.RED)
-        + str(Fore.WHITE)
+        logging.DEBUG: str(colorama.Fore.CYAN) + FORMAT + str(colorama.Style.RESET_ALL),
+        logging.INFO: str(colorama.Fore.GREEN) + FORMAT + str(colorama.Style.RESET_ALL),
+        logging.WARNING: str(colorama.Fore.YELLOW) + FORMAT + str(colorama.Style.RESET_ALL),
+        logging.ERROR: str(colorama.Fore.RED) + FORMAT + str(colorama.Style.RESET_ALL),
+        logging.CRITICAL: str(colorama.Back.RED)
+        + str(colorama.Fore.WHITE)
         + FORMAT
-        + str(Style.RESET_ALL),
+        + str(colorama.Style.RESET_ALL),
     }
 
     def format(self, record: logging.LogRecord) -> str:
@@ -62,7 +62,7 @@ def setup_logger(
         Configured logger instance
     """
     # Create logs directory if it doesn't exist
-    logs_dir = Path("logs")
+    logs_dir = pathlib.Path("logs")
     logs_dir.mkdir(exist_ok=True)
 
     # Create logger
@@ -85,7 +85,7 @@ def setup_logger(
 
     # Create file handler if log_file is specified
     if log_file:
-        file_handler = RotatingFileHandler(
+        file_handler = logging.handlers.RotatingFileHandler(
             logs_dir / log_file,
             maxBytes=max_bytes,
             backupCount=backup_count,

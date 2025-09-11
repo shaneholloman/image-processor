@@ -8,19 +8,20 @@ This package provides two main tools:
 Both tools use Ollama's LLaVA model for computer vision analysis.
 """
 
+import contextlib
+from typing import Any
+
 __version__ = "2.1.0"
 __author__ = "Shane Holloman"
 __email__ = "contact@shaneholloman.com"
 
 # Re-export main functionality from subtools
-try:
+meta_main: Any = None
+with contextlib.suppress(ImportError):
     from image_processor_meta import main as meta_main
-except ImportError:
-    meta_main = None
 
-try:
+name_main: Any = None
+with contextlib.suppress(ImportError):
     from image_processor_name import main as name_main
-except ImportError:
-    name_main = None
 
 __all__ = ["meta_main", "name_main", "__version__"]

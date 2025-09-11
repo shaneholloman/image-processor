@@ -2,26 +2,21 @@
 Integration tests for Ollama API connectivity (requires running Ollama).
 """
 
-from pathlib import Path
+import pathlib
 
+import PIL.Image
 import pytest
-from PIL import Image
-from src.image_processor_name.ollama_client import (
-    OllamaClient,
-    OllamaConnectionError,
-    OllamaResponseError,
-    OllamaTimeoutError,
-)
+import src.image_processor_name.ollama_client
 
 
 @pytest.fixture(scope="module")
 def ollama_client():
     """Create an Ollama client for testing."""
-    return OllamaClient()
+    return src.image_processor_name.ollama_client.OllamaClient()
 
 
 @pytest.mark.requires_ollama
-def test_connection_to_local_ollama(ollama_client: OllamaClient):
+def test_connection_to_local_ollama(ollama_client: src.image_processor_name.ollama_client.OllamaClient):
     """Test basic connection to local Ollama instance."""
     result = ollama_client.test_connection()
 
@@ -32,7 +27,7 @@ def test_connection_to_local_ollama(ollama_client: OllamaClient):
 
 
 @pytest.mark.requires_ollama
-def test_list_available_models(ollama_client: OllamaClient):
+def test_list_available_models(ollama_client: src.image_processor_name.ollama_client.OllamaClient):
     """Test listing available models from Ollama."""
     try:
         models = ollama_client.list_models()
@@ -49,13 +44,13 @@ def test_list_available_models(ollama_client: OllamaClient):
             assert isinstance(model["name"], str)
             assert len(model["name"]) > 0
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping model list test")
 
 
 @pytest.mark.requires_ollama
 def test_generate_filename_with_real_image(
-    ollama_client: OllamaClient, sample_image_small: Path
+    ollama_client: src.image_processor_name.ollama_client.OllamaClient, sample_image_small: pathlib.Path
 ):
     """Test filename generation with a real image using live Ollama."""
     try:
@@ -71,13 +66,13 @@ def test_generate_filename_with_real_image(
         for indicator in error_indicators:
             assert indicator not in description_lower
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping filename generation test")
 
 
 @pytest.mark.requires_ollama
 def test_generate_filename_with_custom_prompt(
-    ollama_client: OllamaClient, sample_image_small: Path
+    ollama_client: src.image_processor_name.ollama_client.OllamaClient, sample_image_small: pathlib.Path
 ):
     """Test filename generation with custom prompt using live Ollama."""
     custom_prompt = "Describe this image in exactly 3 words"
@@ -92,13 +87,13 @@ def test_generate_filename_with_custom_prompt(
         word_count = len(description.split())
         assert 1 <= word_count <= 10  # Reasonable range
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping custom prompt test")
 
 
 @pytest.mark.requires_ollama
 def test_multiple_image_processing(
-    ollama_client: OllamaClient, sample_images: list[Path]
+    ollama_client: src.image_processor_name.ollama_client.OllamaClient, sample_images: list[pathlib.Path]
 ):
     """Test processing multiple different images in sequence."""
     descriptions = []
@@ -118,16 +113,16 @@ def test_multiple_image_processing(
         unique_descriptions = set(descriptions)
         assert len(unique_descriptions) >= 2  # At least some variety
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping multiple image test")
 
 
 @pytest.mark.requires_ollama
-def test_large_image_processing(ollama_client: OllamaClient, temp_dir: Path):
+def test_large_image_processing(ollama_client: src.image_processor_name.ollama_client.OllamaClient, temp_dir: pathlib.Path):
     """Test processing a larger image file."""
     # Create a larger test image (500x500 pixels)
     large_image_path = temp_dir / "large_test.jpg"
-    large_img = Image.new("RGB", (500, 500), color="purple")
+    large_img = PIL.Image.new("RGB", (500, 500), color="purple")
     large_img.save(large_image_path, "JPEG")
 
     try:
@@ -136,12 +131,12 @@ def test_large_image_processing(ollama_client: OllamaClient, temp_dir: Path):
         assert isinstance(description, str)
         assert len(description) > 0
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping large image test")
 
 
 @pytest.mark.requires_ollama
-def test_different_image_formats(ollama_client: OllamaClient, temp_dir: Path):
+def test_different_image_formats(ollama_client: src.image_processor_name.ollama_client.OllamaClient, temp_dir: pathlib.Path):
     """Test processing different image formats."""
     formats = [
         ("JPEG", ".jpg", "red"),
@@ -154,7 +149,7 @@ def test_different_image_formats(ollama_client: OllamaClient, temp_dir: Path):
     try:
         for fmt, ext, color in formats:
             image_path = temp_dir / f"format_test{ext}"
-            img = Image.new("RGB", (50, 50), color=color)
+            img = PIL.Image.new("RGB", (50, 50), color=color)
 
             if fmt == "GIF":
                 img.save(image_path, fmt, save_all=True)
@@ -174,19 +169,19 @@ def test_different_image_formats(ollama_client: OllamaClient, temp_dir: Path):
         for _fmt, desc in descriptions:
             assert len(desc.split()) >= 1
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping format test")
 
 
 @pytest.mark.requires_ollama
-def test_api_timeout_handling(temp_dir: Path):
+def test_api_timeout_handling(temp_dir: pathlib.Path):
     """Test API timeout configuration and handling."""
     # Create client with very short timeout
-    short_timeout_client = OllamaClient(timeout=1)
+    short_timeout_client = src.image_processor_name.ollama_client.OllamaClient(timeout=1)
 
     # Create test image
     test_image = temp_dir / "timeout_test.jpg"
-    img = Image.new("RGB", (100, 100), color="orange")
+    img = PIL.Image.new("RGB", (100, 100), color="orange")
     img.save(test_image, "JPEG")
 
     try:
@@ -196,15 +191,15 @@ def test_api_timeout_handling(temp_dir: Path):
         # If it succeeds, should be valid
         assert isinstance(description, str)
 
-    except OllamaTimeoutError:
+    except src.image_processor_name.ollama_client.OllamaTimeoutError:
         # Timeout is expected with short timeout
         pass
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping timeout test")
 
 
 @pytest.mark.requires_ollama
-def test_model_availability(ollama_client: OllamaClient):
+def test_model_availability(ollama_client: src.image_processor_name.ollama_client.OllamaClient):
     """Test that the configured model is actually available."""
     try:
         models = ollama_client.list_models()
@@ -226,12 +221,12 @@ def test_model_availability(ollama_client: OllamaClient):
 
         assert model_available
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping model availability test")
 
 
 @pytest.mark.requires_ollama
-def test_concurrent_requests(ollama_client: OllamaClient, sample_images: list[Path]):
+def test_concurrent_requests(ollama_client: src.image_processor_name.ollama_client.OllamaClient, sample_images: list[pathlib.Path]):
     """Test handling multiple concurrent-ish requests."""
     import threading
     import time
@@ -239,7 +234,7 @@ def test_concurrent_requests(ollama_client: OllamaClient, sample_images: list[Pa
     results = []
     errors = []
 
-    def process_image(image_path: Path, index: int):
+    def process_image(image_path: pathlib.Path, index: int):
         try:
             description = ollama_client.generate_filename(image_path)
             results.append((index, description))
@@ -271,16 +266,16 @@ def test_concurrent_requests(ollama_client: OllamaClient, sample_images: list[Pa
         for _index, error in errors:
             assert "connection" in error.lower() or "timeout" in error.lower()
 
-    except OllamaConnectionError:
+    except src.image_processor_name.ollama_client.OllamaConnectionError:
         pytest.skip("Ollama not available - skipping concurrent test")
 
 
 @pytest.mark.requires_ollama
-def test_error_response_handling(ollama_client: OllamaClient, temp_dir: Path):
+def test_error_response_handling(ollama_client: src.image_processor_name.ollama_client.OllamaClient, temp_dir: pathlib.Path):
     """Test handling of various error responses from Ollama."""
     # Create a very small image that might cause issues
     tiny_image = temp_dir / "tiny.jpg"
-    tiny_img = Image.new("RGB", (1, 1), color="white")
+    tiny_img = PIL.Image.new("RGB", (1, 1), color="white")
     tiny_img.save(tiny_image, "JPEG")
 
     try:
@@ -290,7 +285,7 @@ def test_error_response_handling(ollama_client: OllamaClient, temp_dir: Path):
         # If it succeeds, should be valid (Ollama might handle tiny images fine)
         assert isinstance(description, str)
 
-    except (OllamaResponseError, OllamaConnectionError):
+    except (src.image_processor_name.ollama_client.OllamaResponseError, src.image_processor_name.ollama_client.OllamaConnectionError):
         # These exceptions are acceptable for edge cases
         pass
     except Exception as e:
@@ -300,7 +295,7 @@ def test_error_response_handling(ollama_client: OllamaClient, temp_dir: Path):
 
 @pytest.mark.requires_ollama
 @pytest.mark.slow
-def test_stress_processing(ollama_client: OllamaClient, temp_dir: Path):
+def test_stress_processing(ollama_client: src.image_processor_name.ollama_client.OllamaClient, temp_dir: pathlib.Path):
     """Stress test with multiple image processing (marked as slow)."""
     # Create multiple test images
     num_images = 10
@@ -311,7 +306,7 @@ def test_stress_processing(ollama_client: OllamaClient, temp_dir: Path):
         # Create images with different colors to give variety
         color_value = int(255 * i / num_images)
         color = (color_value, 128, 255 - color_value)
-        img = Image.new("RGB", (30, 30), color=color)
+        img = PIL.Image.new("RGB", (30, 30), color=color)
         img.save(image_path, "JPEG")
         images.append(image_path)
 
@@ -326,7 +321,7 @@ def test_stress_processing(ollama_client: OllamaClient, temp_dir: Path):
                 assert len(description) > 0
                 successful_count += 1
 
-            except (OllamaConnectionError, OllamaTimeoutError, OllamaResponseError):
+            except (src.image_processor_name.ollama_client.OllamaConnectionError, src.image_processor_name.ollama_client.OllamaTimeoutError, src.image_processor_name.ollama_client.OllamaResponseError):
                 error_count += 1
                 # These errors are acceptable under stress
                 continue
