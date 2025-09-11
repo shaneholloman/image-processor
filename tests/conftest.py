@@ -14,6 +14,25 @@ from src.image_processor_name.core.renamer import ImageRenamer
 from src.image_processor_name.tools.file_operations import FileOperations
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--requires_ollama", action="store_true", default=False, help="run slow ollama tests"
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "requires_ollama: run slow ollama tests")
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--requires_ollama"):  # --requires_ollama given in cli: run ollama tests
+        return
+    skip_slow = pytest.mark.skip(reason="need --requires_ollama option to run")
+    for item in items:
+        if "requires_ollama" in item.keywords:
+            item.add_marker(skip_slow)
+
+
 @pytest.fixture
 def temp_dir() -> Generator[Path]:
     """Create a temporary directory for test files."""

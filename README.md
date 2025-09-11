@@ -261,17 +261,20 @@ uv run ty check src
 ### Tests
 
 ```bash
-# Run all tests
-uv run pytest
-
 # Run only unit tests
 uv run pytest tests/unit/
 
 # Run only integration tests (no Ollama required)
-uv run pytest tests/integration/ -m "not requires_ollama"
+uv run pytest tests/integration/
 
-# Run Ollama integration tests (requires running Ollama)
-uv run pytest -m requires_ollama
+# Run only Ollama integration tests (requires running Ollama)
+uv run pytest -m requires_ollama --requires_ollama
+
+# Run both Ollama and integration tests (requires running Ollama)
+uv run pytest tests/integration/ --requires_ollama
+
+# Run all tests (requires running Ollama)
+uv run pytest --requires_ollama
 
 # Run with coverage
 uv run pytest --cov=src --cov-report=html -m "not requires_ollama" tests

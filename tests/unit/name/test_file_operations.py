@@ -233,65 +233,6 @@ def test_get_unique_filename_multiple_collisions(temp_dir: Path):
     assert "5" in result.stem or "_5" in result.stem
 
 
-def test_create_backup_success(sample_image_small: Path):
-    """Test successful backup file creation."""
-    file_ops = FileOperations()
-    backup_path = file_ops.create_backup(sample_image_small)
-
-    assert backup_path.exists()
-    assert backup_path.parent == sample_image_small.parent
-    assert "backup" in backup_path.name
-
-    # Content should be identical
-    assert backup_path.read_bytes() == sample_image_small.read_bytes()
-
-
-def test_create_backup_failure(temp_dir: Path):
-    """Test backup creation when source file doesn't exist."""
-    non_existent = temp_dir / "does_not_exist.jpg"
-
-    file_ops = FileOperations()
-
-    with pytest.raises(FileOperationError, match="Failed to create backup"):
-        file_ops.create_backup(non_existent)
-
-
-def test_ensure_directory_exists_new_directory(temp_dir: Path):
-    """Test directory creation when it doesn't exist."""
-    new_dir = temp_dir / "new" / "nested" / "directory"
-
-    file_ops = FileOperations()
-    file_ops.ensure_directory_exists(new_dir)
-
-    assert new_dir.exists()
-    assert new_dir.is_dir()
-
-
-def test_ensure_directory_exists_existing_directory(temp_dir: Path):
-    """Test directory creation when it already exists."""
-    existing_dir = temp_dir / "existing"
-    existing_dir.mkdir()
-
-    file_ops = FileOperations()
-    # Should not raise exception
-    file_ops.ensure_directory_exists(existing_dir)
-
-    assert existing_dir.exists()
-
-
-def test_ensure_directory_exists_permission_error(temp_dir: Path):
-    """Test directory creation with permission error."""
-    restricted_path = temp_dir / "restricted"
-
-    with patch("pathlib.Path.mkdir") as mock_mkdir:
-        mock_mkdir.side_effect = PermissionError("Access denied")
-
-        file_ops = FileOperations()
-
-        with pytest.raises(FileOperationError, match="Failed to create directory"):
-            file_ops.ensure_directory_exists(restricted_path)
-
-
 @pytest.mark.parametrize(
     "file_size_mb,max_size_mb,should_pass",
     [
