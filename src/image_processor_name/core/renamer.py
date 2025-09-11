@@ -9,14 +9,15 @@ from pathlib import Path
 from tqdm import tqdm
 
 from ..api.ollama_client import OllamaClient
-from ..exceptions import (
-    ImageProcessingError,
-)
 from ..tools.config_manager import config
 from ..tools.file_operations import FileOperations
 from ..tools.log_manager import get_logger
 
 logger = get_logger(__name__)
+
+
+class ImageRenameError(Exception):
+    pass
 
 
 class ImageRenamer:
@@ -292,7 +293,7 @@ class ImageRenamer:
 
         except Exception as e:
             logger.error(f"Directory processing failed: {e}")
-            raise ImageProcessingError(
+            raise ImageRenameError(
                 f"Failed to process directory {directory}: {e}"
             ) from e
 

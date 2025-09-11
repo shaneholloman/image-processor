@@ -6,11 +6,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from src.image_processor_name.exceptions import (
+from src.image_processor_name.tools.file_operations import (
     FileOperationError,
+    FileOperations,
     ImageCorrupted,
 )
-from src.image_processor_name.tools.file_operations import FileOperations
 
 
 def test_init_with_defaults():
