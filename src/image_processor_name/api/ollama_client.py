@@ -11,16 +11,31 @@ from typing import Any
 import requests
 from requests.exceptions import ConnectionError, RequestException, Timeout
 
-from ..exceptions import (
-    ImageCorrupted,
-    OllamaConnectionError,
-    OllamaResponseError,
-    OllamaTimeoutError,
-)
 from ..tools.config_manager import config
 from ..tools.log_manager import get_logger
 
 logger = get_logger(__name__)
+
+
+# Ollama-specific exceptions
+class OllamaConnectionError(Exception):
+    """Raised when connection to Ollama fails."""
+    pass
+
+
+class OllamaTimeoutError(Exception):
+    """Raised when Ollama request times out."""
+    pass
+
+
+class OllamaResponseError(Exception):
+    """Raised when Ollama returns invalid response."""
+    pass
+
+
+class ImageCorrupted(Exception):
+    """Raised when image file is corrupted or unreadable."""
+    pass
 
 
 class OllamaClient:

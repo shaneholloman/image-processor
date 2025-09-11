@@ -14,7 +14,6 @@ from .. import CONFIG_DIR
 
 class ConfigError(Exception):
     """Raised when configuration loading or validation fails."""
-
     pass
 
 

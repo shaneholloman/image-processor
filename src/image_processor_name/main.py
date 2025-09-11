@@ -6,14 +6,9 @@ import argparse
 import sys
 from pathlib import Path
 
-from .api.ollama_client import OllamaClient
+from .api.ollama_client import OllamaClient, OllamaConnectionError
 from .core.renamer import ImageRenamer
-from .exceptions import (
-    ConfigurationError,
-    ImageProcessorNameError,
-    OllamaConnectionError,
-)
-from .tools.config_manager import config
+from .tools.config_manager import ConfigError, config
 from .tools.file_operations import FileOperations
 from .tools.log_manager import get_logger, setup_logger
 
@@ -257,7 +252,7 @@ def main() -> int:
         parser.print_help()
         return 1
 
-    except ConfigurationError as e:
+    except ConfigError as e:
         print(f"Configuration error: {e}")
         print("Check your configuration file and try again.")
         return 1
@@ -265,10 +260,6 @@ def main() -> int:
     except OllamaConnectionError as e:
         print(f"Ollama connection error: {e}")
         print("Run with --check-connection to diagnose connection issues.")
-        return 1
-
-    except ImageProcessorNameError as e:
-        print(f"Error: {e}")
         return 1
 
     except KeyboardInterrupt:
