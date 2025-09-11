@@ -265,16 +265,16 @@ uv run ty check src
 uv run pytest
 
 # Run only unit tests
-uv run pytest tests/unit/ -m unit
+uv run pytest tests/unit/
 
 # Run only integration tests (no Ollama required)
-uv run pytest tests/integration/ -m integration
+uv run pytest tests/integration/ -m "not requires_ollama"
 
 # Run Ollama integration tests (requires running Ollama)
 uv run pytest -m requires_ollama
 
 # Run with coverage
-uv run pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html -m "not requires_ollama" tests
 ```
 
 ### Building and Publishing

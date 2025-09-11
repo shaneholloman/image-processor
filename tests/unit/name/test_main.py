@@ -7,21 +7,13 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from src.image_processor_name.exceptions import (
-    ConfigurationError,
-    OllamaConnectionError,
-)
-from src.image_processor_name.main import (
-    check_ollama_connection,
-    create_argument_parser,
-    handle_rename_command,
-    main,
-)
+import src.image_processor_name.exceptions as exceptions
+import src.image_processor_name.main as main_module
 
 
 def test_create_argument_parser_basic():
     """Test basic argument parser creation."""
-    parser = create_argument_parser()
+    parser = main_module.create_argument_parser()
 
     assert isinstance(parser, argparse.ArgumentParser)
     assert parser.description is not None
@@ -30,7 +22,7 @@ def test_create_argument_parser_basic():
 
 def test_parse_global_options():
     """Test parsing of global options."""
-    parser = create_argument_parser()
+    parser = main_module.create_argument_parser()
 
     # Test dry-run option
     args = parser.parse_args(["--dry-run", "rename", "test.jpg"])
@@ -47,7 +39,7 @@ def test_parse_global_options():
 
 def test_parse_rename_command():
     """Test parsing of rename command."""
-    parser = create_argument_parser()
+    parser = main_module.create_argument_parser()
 
     # Basic rename command
     args = parser.parse_args(["rename", "/path/to/images"])
@@ -64,9 +56,9 @@ def test_parse_rename_command():
     assert args.prompt == "Custom prompt"
 
 
-def test_parse_check_connection():
-    """Test parsing of check connection command."""
-    parser = create_argument_parser()
+def test_parse_test_connection():
+    """Test parsing of test connection command."""
+    parser = main_module.create_argument_parser()
 
     args = parser.parse_args(["--check-connection"])
     assert args.check_connection is True
@@ -74,7 +66,7 @@ def test_parse_check_connection():
 
 def test_parse_list_models():
     """Test parsing of list models command."""
-    parser = create_argument_parser()
+    parser = main_module.create_argument_parser()
 
     args = parser.parse_args(["--list-models"])
     assert args.list_models is True
@@ -82,7 +74,7 @@ def test_parse_list_models():
 
 def test_parse_version():
     """Test version argument handling."""
-    parser = create_argument_parser()
+    parser = main_module.create_argument_parser()
 
     with pytest.raises(SystemExit):
         parser.parse_args(["--version"])
@@ -93,7 +85,7 @@ def test_test_ollama_connection_success(mock_ollama_success: Mock, capsys):
     mock_ollama_success.endpoint = "http://localhost:11434/api/generate"
     mock_ollama_success.model = "llava-llama3:latest"
 
-    result = check_ollama_connection(mock_ollama_success)
+    result = main_module.check_ollama_connection(mock_ollama_success)
 
     assert result is True
     captured = capsys.readouterr()
@@ -105,7 +97,7 @@ def test_test_ollama_connection_failure(mock_ollama_error: Mock, capsys):
     """Test failed connection test."""
     mock_ollama_error.endpoint = "http://localhost:11434/api/generate"
 
-    result = check_ollama_connection(mock_ollama_error)
+    result = main_module.check_ollama_connection(mock_ollama_error)
 
     assert result is False
     captured = capsys.readouterr()
@@ -135,7 +127,7 @@ def test_handle_rename_command_file_success(sample_image_small: Path):
         mock_file_ops.is_supported_image.return_value = True
         mock_file_ops_class.return_value = mock_file_ops
 
-        result = handle_rename_command(args)
+        result = main_module.handle_rename_command(args)
 
         assert result == 0
         mock_renamer.rename_single_image.assert_called_once()
@@ -147,7 +139,7 @@ def test_handle_rename_command_file_not_found():
     args.path = "/does/not/exist.jpg"
     args.dry_run = False
 
-    result = handle_rename_command(args)
+    result = main_module.handle_rename_command(args)
 
     assert result == 1
 
@@ -166,7 +158,7 @@ def test_handle_rename_command_unsupported_format(temp_dir: Path):
         mock_file_ops.is_supported_image.return_value = False
         mock_file_ops_class.return_value = mock_file_ops
 
-        result = handle_rename_command(args)
+        result = main_module.handle_rename_command(args)
 
         assert result == 1
 
@@ -195,7 +187,7 @@ def test_handle_rename_command_directory_success(temp_image_dir: Path):
         }
         mock_renamer_class.return_value = mock_renamer
 
-        result = handle_rename_command(args)
+        result = main_module.handle_rename_command(args)
 
         assert result == 0
         mock_renamer.rename_directory.assert_called_once()
@@ -225,7 +217,7 @@ def test_handle_rename_command_directory_with_failures(temp_image_dir: Path):
         }
         mock_renamer_class.return_value = mock_renamer
 
-        result = handle_rename_command(args)
+        result = main_module.handle_rename_command(args)
 
         assert result == 1  # Should return error code when there are failures
 
@@ -245,7 +237,7 @@ def test_handle_rename_command_connection_failure(sample_image_small: Path):
         mock_renamer.test_connection.return_value = False
         mock_renamer_class.return_value = mock_renamer
 
-        result = handle_rename_command(args)
+        result = main_module.handle_rename_command(args)
 
         assert result == 1
 
@@ -271,7 +263,7 @@ def test_handle_rename_command_dry_run(sample_image_small: Path):
         mock_file_ops.is_supported_image.return_value = True
         mock_file_ops_class.return_value = mock_file_ops
 
-        result = handle_rename_command(args)
+        result = main_module.handle_rename_command(args)
 
         assert result == 0
         # In dry run mode, connection test should be skipped
@@ -289,7 +281,7 @@ def test_main_test_connection_success(mock_setup_logging):
         mock_client.test_connection.return_value = True
         mock_client_class.return_value = mock_client
 
-        result = main()
+        result = main_module.main()
 
         assert result == 0
 
@@ -305,7 +297,7 @@ def test_main_test_connection_failure(mock_setup_logging):
         mock_client.test_connection.return_value = False
         mock_client_class.return_value = mock_client
 
-        result = main()
+        result = main_module.main()
 
         assert result == 1
 
@@ -323,7 +315,7 @@ def test_main_list_models_success(mock_setup_logging):
         }
         mock_client_class.return_value = mock_client
 
-        result = main()
+        result = main_module.main()
 
         assert result == 0
 
@@ -339,7 +331,7 @@ def test_main_list_models_error(mock_setup_logging):
         mock_client.list_models.side_effect = Exception("API error")
         mock_client_class.return_value = mock_client
 
-        result = main()
+        result = main_module.main()
 
         assert result == 1
 
@@ -353,7 +345,7 @@ def test_main_rename_command(
     with patch("sys.argv", ["image-processor-name", "rename", str(sample_image_small)]):
         mock_handle_rename.return_value = 0
 
-        result = main()
+        result = main_module.main()
 
         assert result == 0
         mock_handle_rename.assert_called_once()
@@ -363,7 +355,7 @@ def test_main_rename_command(
 def test_main_no_command(mock_setup_logging):
     """Test main function with no command specified."""
     with patch("sys.argv", ["image-processor-name"]):
-        result = main()
+        result = main_module.main()
 
         assert result == 1
 
@@ -375,9 +367,9 @@ def test_main_configuration_error(mock_setup_logging):
         patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
-        mock_client_class.side_effect = ConfigurationError("Invalid config")
+        mock_client_class.side_effect = exceptions.ConfigurationError("Invalid config")
 
-        result = main()
+        result = main_module.main()
 
         assert result == 1
 
@@ -389,9 +381,9 @@ def test_main_ollama_connection_error(mock_setup_logging):
         patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
-        mock_client_class.side_effect = OllamaConnectionError("Connection failed")
+        mock_client_class.side_effect = exceptions.OllamaConnectionError("Connection failed")
 
-        result = main()
+        result = main_module.main()
 
         assert result == 1
 
@@ -405,7 +397,7 @@ def test_main_keyboard_interrupt(mock_setup_logging):
     ):
         mock_client_class.side_effect = KeyboardInterrupt()
 
-        result = main()
+        result = main_module.main()
 
         assert result == 130
 
@@ -425,7 +417,7 @@ def test_main_verbose_logging(mock_setup_logging):
         mock_client.test_connection.return_value = True
         mock_client_class.return_value = mock_client
 
-        result = main()
+        result = main_module.main()
 
         assert result == 0
         # Should set debug logging level
@@ -441,6 +433,6 @@ def test_main_unexpected_error(mock_setup_logging):
     ):
         mock_client_class.side_effect = RuntimeError("Unexpected error")
 
-        result = main()
+        result = main_module.main()
 
         assert result == 1
