@@ -147,7 +147,7 @@ uv run image-processor-name rename /path/to/images
 uv run image-processor-name rename image.jpg
 
 # Preview what would be renamed without making changes
-uv run image-processor-name --dry-run rename /path/to/images
+uv run image-processor-name --dry-run rename src/image_processor_name/images
 ```
 
 ### Common Options

@@ -7,8 +7,9 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-import src.image_processor_name.exceptions as exceptions
 import src.image_processor_name.main as main_module
+from src.image_processor_name.api.ollama_client import OllamaConnectionError
+from src.image_processor_name.tools.config_manager import ConfigError
 
 
 def test_create_argument_parser_basic():
@@ -367,7 +368,7 @@ def test_main_configuration_error(mock_setup_logging):
         patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
-        mock_client_class.side_effect = exceptions.ConfigurationError("Invalid config")
+        mock_client_class.side_effect = ConfigError("Invalid config")
 
         result = main_module.main()
 
@@ -381,7 +382,7 @@ def test_main_ollama_connection_error(mock_setup_logging):
         patch("sys.argv", ["image-processor-name", "--check-connection"]),
         patch("src.image_processor_name.main.OllamaClient") as mock_client_class,
     ):
-        mock_client_class.side_effect = exceptions.OllamaConnectionError("Connection failed")
+        mock_client_class.side_effect = OllamaConnectionError("Connection failed")
 
         result = main_module.main()
 

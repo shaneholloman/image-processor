@@ -9,16 +9,31 @@ from pathlib import Path
 
 from PIL import Image
 
-from ..exceptions import (
-    FileOperationError,
-    FilePermissionError,
-    ImageCorrupted,
-    UnsupportedImageFormat,
-)
-from ..tools.config_manager import config
-from ..tools.log_manager import get_logger
+from .config_manager import config
+from .log_manager import get_logger
 
 logger = get_logger(__name__)
+
+
+# File operation exceptions
+class FileOperationError(Exception):
+    """Raised when file operations fail."""
+    pass
+
+
+class FilePermissionError(Exception):
+    """Raised when file permissions are insufficient."""
+    pass
+
+
+class UnsupportedImageFormat(Exception):
+    """Raised when image format is not supported."""
+    pass
+
+
+class ImageCorrupted(Exception):
+    """Raised when image file is corrupted or unreadable."""
+    pass
 
 
 class FileOperations:
